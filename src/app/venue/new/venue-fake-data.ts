@@ -12,7 +12,7 @@ export function generateFakeVenue(): CreateVenueDTO {
     cnpj: faker.string.numeric(2) + '.' + faker.string.numeric(3) + '.' + faker.string.numeric(3) + '/' + faker.string.numeric(4) + '-' + faker.string.numeric(2),
     phone: `(${faker.string.numeric(2)}) ${faker.string.numeric(5)}-${faker.string.numeric(4)}`,
     street: faker.location.street(),
-    number: faker.string.numeric({ min: 1, max: 4 }),
+    number: faker.string.numeric({ length: { min: 1, max: 4 } }),
     complement: faker.helpers.maybe(() => faker.helpers.arrayElement(['Bloco A', 'Sala 1', 'Galpão 2', 'Térreo']), { probability: 0.4 }) ?? '',
     neighborhood: faker.location.county(),
     city: faker.location.city(),
