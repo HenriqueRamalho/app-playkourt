@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CreateVenueUseCase } from '@/application/use-cases/venue/CreateVenueUseCase';
 import { ListVenuesUseCase } from '@/application/use-cases/venue/ListVenuesUseCase';
+import { UpdateVenueUseCase } from '@/application/use-cases/venue/UpdateVenueUseCase';
 import { SupabaseVenueRepository } from '@/infrastructure/repositories/supabase/supabase-venue.repository';
 
 export class VenueController {
@@ -47,6 +48,25 @@ export class VenueController {
       return NextResponse.json(venue);
     } catch (error) {
       console.error('Error fetching venue:', JSON.stringify(error, null, 2));
+      const message = error instanceof Error ? error.message : (error as { message?: string })?.message ?? 'Internal server error';
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
+  }
+
+  static async update(req: NextRequest, user: { id: string; email: string }, id: string): Promise<NextResponse> {
+    try {
+      const venueRepository = new SupabaseVenueRepository();
+
+      const members = await venueRepository.findByMemberId(user.id);
+      const hasAccess = members.some((v) => v.id === id);
+      if (!hasAccess) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+      const body = await req.json();
+      const updateVenueUseCase = new UpdateVenueUseCase(venueRepository);
+      const venue = await updateVenueUseCase.execute(id, body);
+      return NextResponse.json(venue);
+    } catch (error) {
+      console.error('Error updating venue:', JSON.stringify(error, null, 2));
       const message = error instanceof Error ? error.message : (error as { message?: string })?.message ?? 'Internal server error';
       return NextResponse.json({ error: message }, { status: 500 });
     }

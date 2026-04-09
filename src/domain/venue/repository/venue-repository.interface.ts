@@ -6,5 +6,6 @@ export interface VenueRepositoryInterface {
   findById(id: string): Promise<Venue | null>;
   findByOwnerId(ownerId: string): Promise<Venue[]>;
   findByMemberId(userId: string): Promise<Venue[]>;
+  update(id: string, venue: Partial<Omit<Venue, 'id' | 'ownerId' | 'createdAt'>>): Promise<Venue>;
   addMember(venueId: string, userId: string, role: VenueMemberRole): Promise<VenueMember>;
 }

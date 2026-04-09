@@ -6,3 +6,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   return withAuth(req, (req, user) => VenueController.getById(req, user, id));
 }
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return withAuth(req, (req, user) => VenueController.update(req, user, id));
+}

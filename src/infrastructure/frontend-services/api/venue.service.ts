@@ -57,6 +57,20 @@ export const venueService = {
     return res.json();
   },
 
+  async update(id: string, dto: Partial<CreateVenueDTO>): Promise<VenueDTO> {
+    const authorization = await getAuthHeader();
+    const res = await fetch(`/api/venues/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', authorization },
+      body: JSON.stringify(dto),
+    });
+    if (!res.ok) {
+      const { error } = await res.json();
+      throw new Error(error ?? 'Failed to update venue');
+    }
+    return res.json();
+  },
+
   async create(dto: CreateVenueDTO): Promise<VenueDTO> {
     const authorization = await getAuthHeader();
     const res = await fetch('/api/venues', {

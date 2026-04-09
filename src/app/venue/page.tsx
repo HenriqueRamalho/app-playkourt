@@ -69,10 +69,10 @@ export default function VenueListPage() {
                   <span className={`text-xs font-medium px-2 py-1 rounded-full ${venue.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                     {venue.isActive ? 'Ativo' : 'Inativo'}
                   </span>
-                  <Link
-                    href={`/venue/${venue.id}`}
-                    className="text-sm font-medium text-blue-600 hover:text-blue-500"
-                  >
+                  <Link href={`/venue/${venue.id}/edit`} className="text-sm font-medium text-gray-600 hover:text-gray-900">
+                    Editar
+                  </Link>
+                  <Link href={`/venue/${venue.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-500">
                     Ver detalhes →
                   </Link>
                 </div>
