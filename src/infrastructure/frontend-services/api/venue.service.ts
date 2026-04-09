@@ -37,6 +37,16 @@ async function getAuthHeader(): Promise<string> {
 }
 
 export const venueService = {
+  async list(): Promise<VenueDTO[]> {
+    const authorization = await getAuthHeader();
+    const res = await fetch('/api/venues', { headers: { authorization } });
+    if (!res.ok) {
+      const { error } = await res.json();
+      throw new Error(error ?? 'Failed to list venues');
+    }
+    return res.json();
+  },
+
   async create(dto: CreateVenueDTO): Promise<VenueDTO> {
     const authorization = await getAuthHeader();
     const res = await fetch('/api/venues', {

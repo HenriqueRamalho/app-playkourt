@@ -78,6 +78,16 @@ export class SupabaseVenueRepository implements VenueRepositoryInterface {
     return data.map((d) => this.fromDatabase(d));
   }
 
+  async findByMemberId(userId: string): Promise<Venue[]> {
+    const { data, error } = await supabase
+      .from('venue_members')
+      .select('venues(*)')
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return data.map((d) => this.fromDatabase(d.venues as Record<string, unknown>));
+  }
+
   async addMember(venueId: string, userId: string, role: VenueMemberRole): Promise<VenueMember> {
     const { data, error } = await supabase
       .from('venue_members')

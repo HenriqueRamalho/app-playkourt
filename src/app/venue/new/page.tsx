@@ -39,7 +39,7 @@ export default function NewVenuePage() {
     setError(null);
     try {
       await venueService.create(form);
-      router.push('/');
+      router.push('/venue');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao cadastrar venue');
     } finally {
