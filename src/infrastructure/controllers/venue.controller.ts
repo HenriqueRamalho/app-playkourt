@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CreateVenueUseCase } from '@/application/use-cases/venue/CreateVenueUseCase';
 import { ListVenuesUseCase } from '@/application/use-cases/venue/ListVenuesUseCase';
 import { UpdateVenueUseCase } from '@/application/use-cases/venue/UpdateVenueUseCase';
+import { DeleteVenueUseCase } from '@/application/use-cases/venue/DeleteVenueUseCase';
 import { SupabaseVenueRepository } from '@/infrastructure/repositories/supabase/supabase-venue.repository';
 
 export class VenueController {
@@ -67,6 +68,24 @@ export class VenueController {
       return NextResponse.json(venue);
     } catch (error) {
       console.error('Error updating venue:', JSON.stringify(error, null, 2));
+      const message = error instanceof Error ? error.message : (error as { message?: string })?.message ?? 'Internal server error';
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
+  }
+
+  static async delete(_req: NextRequest, user: { id: string; email: string }, id: string): Promise<NextResponse> {
+    try {
+      const venueRepository = new SupabaseVenueRepository();
+
+      const members = await venueRepository.findByMemberId(user.id);
+      const hasAccess = members.some((v) => v.id === id);
+      if (!hasAccess) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+      const deleteVenueUseCase = new DeleteVenueUseCase(venueRepository);
+      await deleteVenueUseCase.execute(id);
+      return new NextResponse(null, { status: 204 });
+    } catch (error) {
+      console.error('Error deleting venue:', JSON.stringify(error, null, 2));
       const message = error instanceof Error ? error.message : (error as { message?: string })?.message ?? 'Internal server error';
       return NextResponse.json({ error: message }, { status: 500 });
     }

@@ -100,6 +100,11 @@ export class SupabaseVenueRepository implements VenueRepositoryInterface {
     return this.fromDatabase(data);
   }
 
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase.from('venues').delete().eq('id', id);
+    if (error) throw error;
+  }
+
   async addMember(venueId: string, userId: string, role: VenueMemberRole): Promise<VenueMember> {
     const { data, error } = await supabase
       .from('venue_members')

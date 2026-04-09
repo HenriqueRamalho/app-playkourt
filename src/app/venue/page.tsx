@@ -72,6 +72,9 @@ export default function VenueListPage() {
                   <Link href={`/venue/${venue.id}/edit`} className="text-sm font-medium text-gray-600 hover:text-gray-900">
                     Editar
                   </Link>
+                  <Link href={`/venue/${venue.id}/delete`} className="text-sm font-medium text-red-500 hover:text-red-700">
+                    Excluir
+                  </Link>
                   <Link href={`/venue/${venue.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-500">
                     Ver detalhes →
                   </Link>

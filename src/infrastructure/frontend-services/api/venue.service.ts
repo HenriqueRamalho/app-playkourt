@@ -71,6 +71,18 @@ export const venueService = {
     return res.json();
   },
 
+  async delete(id: string): Promise<void> {
+    const authorization = await getAuthHeader();
+    const res = await fetch(`/api/venues/${id}`, {
+      method: 'DELETE',
+      headers: { authorization },
+    });
+    if (!res.ok) {
+      const { error } = await res.json();
+      throw new Error(error ?? 'Failed to delete venue');
+    }
+  },
+
   async create(dto: CreateVenueDTO): Promise<VenueDTO> {
     const authorization = await getAuthHeader();
     const res = await fetch('/api/venues', {
