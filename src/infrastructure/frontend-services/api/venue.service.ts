@@ -1,0 +1,53 @@
+import { supabase } from '@/infrastructure/frontend-services/supabase';
+
+export interface CreateVenueDTO {
+  name: string;
+  cnpj?: string;
+  phone?: string;
+  street?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
+  city: string;
+  state: string;
+  zipCode?: string;
+}
+
+export interface VenueDTO {
+  id: string;
+  ownerId: string;
+  name: string;
+  cnpj?: string;
+  phone?: string;
+  street?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
+  city: string;
+  state: string;
+  zipCode?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+async function getAuthHeader(): Promise<string> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+  return `Bearer ${session.access_token}`;
+}
+
+export const venueService = {
+  async create(dto: CreateVenueDTO): Promise<VenueDTO> {
+    const authorization = await getAuthHeader();
+    const res = await fetch('/api/venues', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', authorization },
+      body: JSON.stringify(dto),
+    });
+    if (!res.ok) {
+      const { error } = await res.json();
+      throw new Error(error ?? 'Failed to create venue');
+    }
+    return res.json();
+  },
+};
