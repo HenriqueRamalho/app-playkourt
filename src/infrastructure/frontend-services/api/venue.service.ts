@@ -37,6 +37,16 @@ async function getAuthHeader(): Promise<string> {
 }
 
 export const venueService = {
+  async getById(id: string): Promise<VenueDTO> {
+    const authorization = await getAuthHeader();
+    const res = await fetch(`/api/venues/${id}`, { headers: { authorization } });
+    if (!res.ok) {
+      const { error } = await res.json();
+      throw new Error(error ?? 'Failed to fetch venue');
+    }
+    return res.json();
+  },
+
   async list(): Promise<VenueDTO[]> {
     const authorization = await getAuthHeader();
     const res = await fetch('/api/venues', { headers: { authorization } });

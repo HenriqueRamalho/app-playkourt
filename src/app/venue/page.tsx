@@ -65,9 +65,17 @@ export default function VenueListPage() {
                   <p className="font-medium text-gray-900">{venue.name}</p>
                   <p className="text-sm text-gray-500">{venue.city}, {venue.state}</p>
                 </div>
-                <span className={`text-xs font-medium px-2 py-1 rounded-full ${venue.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                  {venue.isActive ? 'Ativo' : 'Inativo'}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${venue.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {venue.isActive ? 'Ativo' : 'Inativo'}
+                  </span>
+                  <Link
+                    href={`/venue/${venue.id}`}
+                    className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                  >
+                    Ver detalhes →
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>
