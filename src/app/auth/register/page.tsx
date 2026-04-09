@@ -17,7 +17,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError('As senhas não coincidem');
       return;
     }
     setLoading(true);
@@ -30,7 +30,7 @@ export default function RegisterPage() {
       if (error) throw error;
       setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during sign up');
+      setError(err instanceof Error ? err.message : 'Erro ao criar conta');
     } finally {
       setLoading(false);
     }
@@ -38,75 +38,75 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
-            <h2 className="text-xl font-semibold text-gray-900">Check your email</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              We sent a confirmation link to <strong>{formData.email}</strong>
-            </p>
-            <Link href="/auth/login" className="mt-4 inline-block text-sm text-blue-600 hover:text-blue-500">
-              Back to sign in
-            </Link>
-          </div>
+      <div className="flex flex-1 items-center justify-center px-4 py-16 bg-gray-50">
+        <div className="w-full max-w-sm bg-white rounded-xl border border-gray-200 shadow-sm p-8 text-center">
+          <span className="text-4xl">📬</span>
+          <h2 className="mt-4 text-xl font-bold text-gray-900">Verifique seu email</h2>
+          <p className="mt-2 text-sm text-gray-500">
+            Enviamos um link de confirmação para <strong>{formData.email}</strong>
+          </p>
+          <Link href="/auth/login" className="mt-5 inline-block text-sm text-green-600 font-medium hover:text-green-700">
+            Voltar para o login →
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create account</h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Already have an account?{' '}
-          <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500">
-            Sign in
-          </Link>
-        </p>
-      </div>
+    <div className="flex flex-1 items-center justify-center px-4 py-16 bg-gray-50">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-8">
+          <span className="text-4xl">🏐</span>
+          <h1 className="mt-3 text-2xl font-bold text-gray-900">Criar conta</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Já tem conta?{' '}
+            <Link href="/auth/login" className="text-green-600 font-medium hover:text-green-700">
+              Entrar
+            </Link>
+          </p>
+        </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
           {error && (
-            <div className="mb-4 bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className="mb-5 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
               <input
                 id="email" name="email" type="email" autoComplete="email" required
                 value={formData.email} onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
               <input
                 id="password" name="password" type="password" autoComplete="new-password" required
                 value={formData.password} onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirm password</label>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">Confirmar senha</label>
               <input
                 id="confirmPassword" name="confirmPassword" type="password" autoComplete="new-password" required
                 value={formData.confirmPassword} onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
 
             <button
               type="submit" disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+              className="w-full py-2 px-4 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating account...' : 'Create account'}
+              {loading ? 'Criando conta...' : 'Criar conta'}
             </button>
           </form>
         </div>

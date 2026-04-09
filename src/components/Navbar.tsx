@@ -6,21 +6,31 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function Navbar() {
   const { user, loading, signOut } = useAuth();
 
-
   return (
-    <nav className="w-full border-b border-gray-200 bg-white px-6 py-3 flex items-center justify-between">
-      <Link href="/" className="font-semibold text-gray-900">Playkourt</Link>
+    <nav className="w-full bg-green-900 px-6 py-3 flex items-center justify-between shadow-sm">
+      <Link href="/" className="flex items-center gap-2">
+        <span className="text-xl"></span>
+        <span className="font-bold text-white tracking-tight text-lg">Playkourt</span>
+      </Link>
 
       <div className="flex items-center gap-4 text-sm">
         {loading ? null : user ? (
           <>
-            <span className="text-gray-600">{user.email}</span>
-            <button onClick={signOut} className="text-blue-600 hover:text-blue-500">Sign out</button>
+            <Link href="/venue" className="text-green-100 hover:text-white transition-colors">Venues</Link>
+            <span className="text-green-300 hidden sm:inline">{user.email}</span>
+            <button
+              onClick={signOut}
+              className="text-sm text-white border border-green-500 rounded-lg px-3 py-1.5 hover:bg-green-600 transition-colors"
+            >
+              Sair
+            </button>
           </>
         ) : (
           <>
-            <Link href="/auth/login" className="text-gray-600 hover:text-gray-900">Sign in</Link>
-            <Link href="/auth/register" className="rounded-md bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-700">Sign up</Link>
+            <Link href="/auth/login" className="text-green-100 hover:text-white transition-colors">Entrar</Link>
+            <Link href="/auth/register" className="rounded-lg bg-white text-green-700 font-medium px-3 py-1.5 hover:bg-green-50 transition-colors">
+              Criar conta
+            </Link>
           </>
         )}
       </div>
