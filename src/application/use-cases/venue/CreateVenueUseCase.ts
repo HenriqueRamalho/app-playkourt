@@ -11,8 +11,8 @@ export interface CreateVenueInput {
   number?: string;
   complement?: string;
   neighborhood?: string;
-  city: string;
-  state: string;
+  cityId: number;
+  stateId: number;
   zipCode?: string;
 }
 

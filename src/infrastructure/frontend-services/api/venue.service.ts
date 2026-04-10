@@ -8,8 +8,8 @@ export interface CreateVenueDTO {
   number?: string;
   complement?: string;
   neighborhood?: string;
-  city: string;
-  state: string;
+  cityId: number;
+  stateId: number;
   zipCode?: string;
 }
 
@@ -23,8 +23,11 @@ export interface VenueDTO {
   number?: string;
   complement?: string;
   neighborhood?: string;
-  city: string;
-  state: string;
+  cityId: number;
+  cityName: string;
+  stateId: number;
+  stateName: string;
+  stateUf: string;
   zipCode?: string;
   isActive: boolean;
   createdAt: string;

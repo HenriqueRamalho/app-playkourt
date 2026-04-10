@@ -70,7 +70,7 @@ export default function VenueDetailPage() {
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">{venue.name}</h1>
-                  <p className="mt-1 text-sm text-gray-500">{venue.city}, {venue.state}</p>
+                  <p className="mt-1 text-sm text-gray-500">{venue.cityName}, {venue.stateUf}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`text-xs font-medium px-2 py-1 rounded-full ${venue.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
@@ -93,8 +93,8 @@ export default function VenueDetailPage() {
                 <DetailRow label="Número" value={venue.number} />
                 <DetailRow label="Complemento" value={venue.complement} />
                 <DetailRow label="Bairro" value={venue.neighborhood} />
-                <DetailRow label="Cidade" value={venue.city} />
-                <DetailRow label="Estado" value={venue.state} />
+                <DetailRow label="Cidade" value={venue.cityName} />
+                <DetailRow label="Estado" value={`${venue.stateUf} — ${venue.stateName}`} />
               </dl>
             </div>
 

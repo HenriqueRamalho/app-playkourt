@@ -63,7 +63,7 @@ export default function VenueListPage() {
               <li key={venue.id} className="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-4 flex items-center justify-between">
                 <div>
                   <p className="font-medium text-gray-900">{venue.name}</p>
-                  <p className="text-sm text-gray-500">{venue.city}, {venue.state}</p>
+                  <p className="text-sm text-gray-500">{venue.cityName}, {venue.stateUf}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`text-xs font-medium px-2 py-1 rounded-full ${venue.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>

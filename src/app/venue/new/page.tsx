@@ -5,15 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { venueService, CreateVenueDTO } from '@/infrastructure/frontend-services/api/venue.service';
 import { generateFakeVenue } from './venue-fake-data';
-
-const BRAZIL_STATES = [
-  'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG',
-  'PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO',
-];
+import StateCitySelect from '@/components/StateCitySelect';
 
 const EMPTY_FORM: CreateVenueDTO = {
   name: '', cnpj: '', phone: '', street: '', number: '',
-  complement: '', neighborhood: '', city: '', state: '', zipCode: '',
+  complement: '', neighborhood: '', cityId: 0, stateId: 0, zipCode: '',
 };
 
 export default function NewVenuePage() {
@@ -29,7 +25,7 @@ export default function NewVenuePage() {
     return null;
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
@@ -46,6 +42,8 @@ export default function NewVenuePage() {
       setLoading(false);
     }
   };
+
+  const inputClass = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent';
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
@@ -72,7 +70,6 @@ export default function NewVenuePage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Informações básicas */}
             <section>
               <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Informações básicas</h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -80,135 +77,59 @@ export default function NewVenuePage() {
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                     Nome do venue <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    id="name" name="name" type="text" required
-                    value={form.name} onChange={handleChange}
-                    placeholder="Ex: Arena Central"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <input id="name" name="name" type="text" required value={form.name} onChange={handleChange} placeholder="Ex: Arena Central" className={inputClass} />
                 </div>
-
                 <div>
                   <label htmlFor="cnpj" className="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
-                  <input
-                    id="cnpj" name="cnpj" type="text"
-                    value={form.cnpj} onChange={handleChange}
-                    placeholder="00.000.000/0000-00"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <input id="cnpj" name="cnpj" type="text" value={form.cnpj} onChange={handleChange} placeholder="00.000.000/0000-00" className={inputClass} />
                 </div>
-
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                  <input
-                    id="phone" name="phone" type="tel"
-                    value={form.phone} onChange={handleChange}
-                    placeholder="(00) 00000-0000"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="(00) 00000-0000" className={inputClass} />
                 </div>
               </div>
             </section>
 
             <div className="border-t border-gray-100" />
 
-            {/* Endereço */}
             <section>
               <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Endereço</h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-1">CEP</label>
-                  <input
-                    id="zipCode" name="zipCode" type="text"
-                    value={form.zipCode} onChange={handleChange}
-                    placeholder="00000-000"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <input id="zipCode" name="zipCode" type="text" value={form.zipCode} onChange={handleChange} placeholder="00000-000" className={inputClass} />
                 </div>
-
                 <div className="sm:col-span-2">
                   <label htmlFor="street" className="block text-sm font-medium text-gray-700 mb-1">Rua</label>
-                  <input
-                    id="street" name="street" type="text"
-                    value={form.street} onChange={handleChange}
-                    placeholder="Rua das Quadras"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <input id="street" name="street" type="text" value={form.street} onChange={handleChange} placeholder="Rua das Quadras" className={inputClass} />
                 </div>
-
                 <div>
                   <label htmlFor="number" className="block text-sm font-medium text-gray-700 mb-1">Número</label>
-                  <input
-                    id="number" name="number" type="text"
-                    value={form.number} onChange={handleChange}
-                    placeholder="123"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <input id="number" name="number" type="text" value={form.number} onChange={handleChange} placeholder="123" className={inputClass} />
                 </div>
-
                 <div>
                   <label htmlFor="complement" className="block text-sm font-medium text-gray-700 mb-1">Complemento</label>
-                  <input
-                    id="complement" name="complement" type="text"
-                    value={form.complement} onChange={handleChange}
-                    placeholder="Bloco A, Sala 2..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <input id="complement" name="complement" type="text" value={form.complement} onChange={handleChange} placeholder="Bloco A, Sala 2..." className={inputClass} />
                 </div>
-
                 <div>
                   <label htmlFor="neighborhood" className="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
-                  <input
-                    id="neighborhood" name="neighborhood" type="text"
-                    value={form.neighborhood} onChange={handleChange}
-                    placeholder="Centro"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <input id="neighborhood" name="neighborhood" type="text" value={form.neighborhood} onChange={handleChange} placeholder="Centro" className={inputClass} />
                 </div>
 
-                <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                    Cidade <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="city" name="city" type="text" required
-                    value={form.city} onChange={handleChange}
-                    placeholder="São Paulo"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
-                    Estado <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    id="state" name="state" required
-                    value={form.state} onChange={handleChange}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white ${!form.state ? 'text-gray-500' : 'text-gray-900'}`}
-                  >
-                    <option value="" className="text-gray-500">Selecione</option>
-                    {BRAZIL_STATES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
+                <StateCitySelect
+                  stateId={form.stateId || ''}
+                  cityId={form.cityId || ''}
+                  onStateChange={(id) => setForm((prev) => ({ ...prev, stateId: id, cityId: 0 }))}
+                  onCityChange={(id) => setForm((prev) => ({ ...prev, cityId: id }))}
+                />
               </div>
             </section>
 
             <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
+              <button type="button" onClick={() => router.back()} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                 Cancelar
               </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+              <button type="submit" disabled={loading} className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 {loading ? 'Salvando...' : 'Criar venue'}
               </button>
             </div>

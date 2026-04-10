@@ -8,8 +8,11 @@ export interface Venue {
   number?: string;
   complement?: string;
   neighborhood?: string;
-  city: string;
-  state: string;
+  cityId: number;
+  cityName: string;
+  stateId: number;
+  stateName: string;
+  stateUf: string;
   zipCode?: string;
   latitude?: number;
   longitude?: number;

@@ -2,11 +2,11 @@ import { Venue } from '../entity/venue.interface';
 import { VenueMember, VenueMemberRole } from '../entity/venue-member.interface';
 
 export interface VenueRepositoryInterface {
-  create(venue: Omit<Venue, 'id' | 'createdAt'>): Promise<Venue>;
+  create(venue: Omit<Venue, 'id' | 'createdAt' | 'cityName' | 'stateName' | 'stateUf'>): Promise<Venue>;
   findById(id: string): Promise<Venue | null>;
   findByOwnerId(ownerId: string): Promise<Venue[]>;
   findByMemberId(userId: string): Promise<Venue[]>;
-  update(id: string, venue: Partial<Omit<Venue, 'id' | 'ownerId' | 'createdAt'>>): Promise<Venue>;
+  update(id: string, venue: Partial<Omit<Venue, 'id' | 'ownerId' | 'createdAt' | 'cityName' | 'stateName' | 'stateUf'>>): Promise<Venue>;
   delete(id: string): Promise<void>;
   addMember(venueId: string, userId: string, role: VenueMemberRole): Promise<VenueMember>;
 }

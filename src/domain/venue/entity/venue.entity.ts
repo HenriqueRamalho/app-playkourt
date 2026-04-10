@@ -10,8 +10,11 @@ export class VenueEntity implements Venue {
   number?: string;
   complement?: string;
   neighborhood?: string;
-  city: string;
-  state: string;
+  cityId: number;
+  cityName: string;
+  stateId: number;
+  stateName: string;
+  stateUf: string;
   zipCode?: string;
   latitude?: number;
   longitude?: number;
@@ -28,8 +31,11 @@ export class VenueEntity implements Venue {
     this.number = params.number;
     this.complement = params.complement;
     this.neighborhood = params.neighborhood;
-    this.city = params.city;
-    this.state = params.state;
+    this.cityId = params.cityId;
+    this.cityName = params.cityName;
+    this.stateId = params.stateId;
+    this.stateName = params.stateName;
+    this.stateUf = params.stateUf;
     this.zipCode = params.zipCode;
     this.latitude = params.latitude;
     this.longitude = params.longitude;
@@ -41,8 +47,8 @@ export class VenueEntity implements Venue {
 
   private validate(): void {
     if (!this.name?.trim()) throw new Error('Name is required');
-    if (!this.city?.trim()) throw new Error('City is required');
-    if (!this.state?.trim() || this.state.length !== 2) throw new Error('State must be a 2-character code');
+    if (!this.cityId) throw new Error('City is required');
+    if (!this.stateId) throw new Error('State is required');
     if (!this.ownerId) throw new Error('Owner is required');
   }
 }

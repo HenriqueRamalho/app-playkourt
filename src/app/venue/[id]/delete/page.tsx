@@ -64,7 +64,7 @@ export default function DeleteVenuePage() {
 
             <div className="bg-gray-50 rounded-lg border border-gray-200 px-5 py-4 mb-8">
               <p className="font-medium text-gray-900">{venue.name}</p>
-              <p className="text-sm text-gray-500 mt-0.5">{venue.city}, {venue.state}</p>
+              <p className="text-sm text-gray-500 mt-0.5">{venue.cityName}, {venue.stateUf}</p>
               {venue.cnpj && <p className="text-sm text-gray-500 mt-0.5">CNPJ: {venue.cnpj}</p>}
               {venue.phone && <p className="text-sm text-gray-500 mt-0.5">Telefone: {venue.phone}</p>}
             </div>
