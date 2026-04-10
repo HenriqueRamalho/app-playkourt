@@ -26,6 +26,30 @@ async function getAuthHeader(): Promise<string> {
 }
 
 export const courtService = {
+  async getById(venueId: string, courtId: string): Promise<CourtDTO> {
+    const authorization = await getAuthHeader();
+    const res = await fetch(`/api/venues/${venueId}/courts/${courtId}`, { headers: { authorization } });
+    if (!res.ok) {
+      const { error } = await res.json();
+      throw new Error(error ?? 'Failed to fetch court');
+    }
+    return res.json();
+  },
+
+  async update(venueId: string, courtId: string, dto: Partial<CreateCourtDTO>): Promise<CourtDTO> {
+    const authorization = await getAuthHeader();
+    const res = await fetch(`/api/venues/${venueId}/courts/${courtId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', authorization },
+      body: JSON.stringify(dto),
+    });
+    if (!res.ok) {
+      const { error } = await res.json();
+      throw new Error(error ?? 'Failed to update court');
+    }
+    return res.json();
+  },
+
   async listByVenue(venueId: string): Promise<CourtDTO[]> {
     const authorization = await getAuthHeader();
     const res = await fetch(`/api/venues/${venueId}/courts`, { headers: { authorization } });

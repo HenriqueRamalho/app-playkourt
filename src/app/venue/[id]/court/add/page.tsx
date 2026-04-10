@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { courtService, CreateCourtDTO } from '@/infrastructure/frontend-services/api/court.service';
 import { SportType, SPORT_TYPE_LABELS } from '@/domain/court/entity/court.interface';
+import { generateFakeCourt } from './court-fake-data';
 
 const EMPTY_FORM: CreateCourtDTO = {
   name: '',
@@ -56,6 +57,15 @@ export default function AddCourtPage() {
           </Link>
           <h1 className="mt-3 text-2xl font-bold text-gray-900">Nova Quadra</h1>
           <p className="mt-1 text-sm text-gray-500">Cadastre uma quadra e associe-a a este venue.</p>
+        </div>
+        <div className="flex justify-end mb-4">
+          <button
+            type="button"
+            onClick={() => setForm(generateFakeCourt())}
+            className="text-xs font-medium text-gray-500 border border-dashed border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-100 transition-colors"
+          >
+            Preencher automaticamente
+          </button>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">

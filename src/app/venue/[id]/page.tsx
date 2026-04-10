@@ -124,9 +124,17 @@ export default function VenueDetailPage() {
                           <p className="text-sm text-gray-400 mt-0.5">{court.description}</p>
                         )}
                       </div>
-                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${court.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                        {court.isActive ? 'Ativa' : 'Inativa'}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${court.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                          {court.isActive ? 'Ativa' : 'Inativa'}
+                        </span>
+                        <Link
+                          href={`/venue/${venue.id}/court/${court.id}/edit`}
+                          className="text-sm font-medium text-gray-600 hover:text-gray-900"
+                        >
+                          Editar
+                        </Link>
+                      </div>
                     </li>
                   ))}
                 </ul>

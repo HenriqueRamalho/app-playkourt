@@ -35,6 +35,35 @@ export class SupabaseCourtRepository implements CourtRepositoryInterface {
     return this.fromDatabase(data);
   }
 
+  async findById(id: string): Promise<Court | null> {
+    const { data, error } = await supabase
+      .from('courts')
+      .select()
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data ? this.fromDatabase(data) : null;
+  }
+
+  async update(id: string, court: Partial<Omit<Court, 'id' | 'venueId' | 'createdAt'>>): Promise<Court> {
+    const { data, error } = await supabase
+      .from('courts')
+      .update({
+        name: court.name,
+        sport_type: court.sportType,
+        description: court.description,
+        price_per_hour: court.pricePerHour,
+        is_active: court.isActive,
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return this.fromDatabase(data);
+  }
+
   async findByVenueId(venueId: string): Promise<Court[]> {
     const { data, error } = await supabase
       .from('courts')
