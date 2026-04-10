@@ -48,7 +48,7 @@ Representa o local onde as quadras estão localizadas (courts), ou seja, é aque
   - is_active boolean default true,
   - created_at timestamptz default now()
 
- ### vanue_members
+ ### venue_members
 
   - id uuid
   - venue_id uuid references venues(id) on delete cascade,
@@ -57,6 +57,16 @@ Representa o local onde as quadras estão localizadas (courts), ou seja, é aque
   - created_at timestamptz default now(),
   - unique(venue_id, user_id)  -- evita duplicata
 
+  ## court
+
+ - id uuid 
+ - venue_id 
+ - name text not null,
+ - sport_type text not null (esse aqui será um enum no meu código)
+ - description text,
+ - price_per_hour numeric(10,2) not null,
+ - is_active boolean default true
+ - created_at timestamptz default now()
 
 
 <!-- END:nextjs-agent-rules -->
