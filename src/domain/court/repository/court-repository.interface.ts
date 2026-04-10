@@ -5,4 +5,5 @@ export interface CourtRepositoryInterface {
   findById(id: string): Promise<Court | null>;
   findByVenueId(venueId: string): Promise<Court[]>;
   update(id: string, court: Partial<Omit<Court, 'id' | 'venueId' | 'createdAt'>>): Promise<Court>;
+  delete(id: string): Promise<void>;
 }

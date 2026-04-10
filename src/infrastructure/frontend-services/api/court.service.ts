@@ -50,6 +50,18 @@ export const courtService = {
     return res.json();
   },
 
+  async delete(venueId: string, courtId: string): Promise<void> {
+    const authorization = await getAuthHeader();
+    const res = await fetch(`/api/venues/${venueId}/courts/${courtId}`, {
+      method: 'DELETE',
+      headers: { authorization },
+    });
+    if (!res.ok) {
+      const { error } = await res.json();
+      throw new Error(error ?? 'Failed to delete court');
+    }
+  },
+
   async listByVenue(venueId: string): Promise<CourtDTO[]> {
     const authorization = await getAuthHeader();
     const res = await fetch(`/api/venues/${venueId}/courts`, { headers: { authorization } });

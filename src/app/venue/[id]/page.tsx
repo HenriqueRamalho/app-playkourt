@@ -134,6 +134,12 @@ export default function VenueDetailPage() {
                         >
                           Editar
                         </Link>
+                        <Link
+                          href={`/venue/${venue.id}/court/${court.id}/delete`}
+                          className="text-sm font-medium text-red-500 hover:text-red-700"
+                        >
+                          Excluir
+                        </Link>
                       </div>
                     </li>
                   ))}

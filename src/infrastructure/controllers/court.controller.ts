@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CreateCourtUseCase } from '@/application/use-cases/court/CreateCourtUseCase';
 import { ListCourtsUseCase } from '@/application/use-cases/court/ListCourtsUseCase';
 import { UpdateCourtUseCase } from '@/application/use-cases/court/UpdateCourtUseCase';
+import { DeleteCourtUseCase } from '@/application/use-cases/court/DeleteCourtUseCase';
 import { SupabaseCourtRepository } from '@/infrastructure/repositories/supabase/supabase-court.repository';
 import { SupabaseVenueRepository } from '@/infrastructure/repositories/supabase/supabase-venue.repository';
 
@@ -76,6 +77,24 @@ export class CourtController {
       return NextResponse.json(court);
     } catch (error) {
       console.error('Error updating court:', JSON.stringify(error, null, 2));
+      const message = error instanceof Error ? error.message : (error as { message?: string })?.message ?? 'Internal server error';
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
+  }
+
+  static async delete(_req: NextRequest, user: { id: string; email: string }, venueId: string, courtId: string): Promise<NextResponse> {
+    try {
+      const venueRepository = new SupabaseVenueRepository();
+      const members = await venueRepository.findByMemberId(user.id);
+      const hasAccess = members.some((v) => v.id === venueId);
+      if (!hasAccess) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+      const courtRepository = new SupabaseCourtRepository();
+      const deleteCourtUseCase = new DeleteCourtUseCase(courtRepository);
+      await deleteCourtUseCase.execute(courtId);
+      return new NextResponse(null, { status: 204 });
+    } catch (error) {
+      console.error('Error deleting court:', JSON.stringify(error, null, 2));
       const message = error instanceof Error ? error.message : (error as { message?: string })?.message ?? 'Internal server error';
       return NextResponse.json({ error: message }, { status: 500 });
     }

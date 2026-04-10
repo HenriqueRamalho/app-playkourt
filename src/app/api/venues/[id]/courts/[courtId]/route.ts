@@ -11,3 +11,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id, courtId } = await params;
   return withAuth(req, (req, user) => CourtController.update(req, user, id, courtId));
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string; courtId: string }> }) {
+  const { id, courtId } = await params;
+  return withAuth(req, (req, user) => CourtController.delete(req, user, id, courtId));
+}

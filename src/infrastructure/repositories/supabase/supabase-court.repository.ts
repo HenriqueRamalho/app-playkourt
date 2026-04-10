@@ -64,6 +64,11 @@ export class SupabaseCourtRepository implements CourtRepositoryInterface {
     return this.fromDatabase(data);
   }
 
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase.from('courts').delete().eq('id', id);
+    if (error) throw error;
+  }
+
   async findByVenueId(venueId: string): Promise<Court[]> {
     const { data, error } = await supabase
       .from('courts')
