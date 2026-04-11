@@ -4,7 +4,6 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
-  // Subdomains allowed in local and production
   async headers() {
     return [
       {
@@ -13,7 +12,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  allowedDevOrigins: ['localplaykourt.com', '*.localplaykourt.com'],
+  allowedDevOrigins: ['localplaykourt.com'],
 };
 
 export default nextConfig;

@@ -26,9 +26,13 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ### 3. Configure o banco de dados
 
-Execute as migrations disponíveis em `supabase/migrations/` no SQL Editor do seu projeto Supabase.
+Execute as migrations disponíveis em `supabase/migrations/` no seu projeto Supabase:
 
-### 4. Ative o Data API no Supabase ⚠️
+```bash
+supabase db push
+```
+
+### 5. Ative o Data API no Supabase ⚠️
 
 Este projeto utiliza o cliente JavaScript do Supabase (`@supabase/supabase-js`) para consultar o banco de dados. Esse cliente depende do **Data API (PostgREST)**, que precisa estar habilitado no projeto.
 
@@ -42,22 +46,51 @@ Sem essa configuração, todas as queries retornarão erro silenciosamente ou fa
 4. Na seção **Data API**, certifique-se de que a opção está **habilitada**
 5. Em **Exposed schemas**, confirme que o schema `public` está listado
 
-> O Data API vem ativado por padrão em projetos novos. Se você estiver usando um projeto existente ou tiver alterado as configurações, verifique este passo antes de depurar qualquer problema de leitura/escrita no banco.
-
-### 5. Inicie o servidor de desenvolvimento
+### 6. Inicie o servidor de desenvolvimento
 
 ```bash
 npm run dev
 ```
 
-Acesse [http://localhost:3000](http://localhost:3000).
+Acesse [https://localplaykourt.com:3000](https://localplaykourt.com:3000).
+
+> Para HTTPS local com domínio customizado, o projeto usa `mkcert`. Veja a seção **Local HTTPS** abaixo.
+
+## Local HTTPS (mkcert)
+
+1. Instale o mkcert:
+   ```bash
+   brew install mkcert
+   mkcert -install
+   ```
+
+2. Gere os certificados na raiz do projeto:
+   ```bash
+   mkdir -p certificates
+   mkcert -key-file certificates/local-key.pem -cert-file certificates/local-cert.pem \
+     localplaykourt.com "*.localplaykourt.com"
+   ```
+
+3. Adicione ao `/etc/hosts`:
+   ```
+   127.0.0.1   localplaykourt.com
+   ```
+
+4. Rode o servidor:
+   ```bash
+   npm run dev
+   ```
+
+5. Acesse [https://localplaykourt.com:3000](https://localplaykourt.com:3000).
 
 ## Estrutura do projeto
 
 ```
 src/
 ├── app/                  # Rotas e páginas (Next.js App Router)
-│   └── api/              # API Routes
+│   ├── api/              # API Routes
+│   ├── auth/             # Login, registro e callback OAuth
+│   └── venue/            # Gestão de venues e quadras
 ├── application/          # Casos de uso
 ├── domain/               # Entidades e interfaces de repositório
 ├── infrastructure/       # Repositórios, controllers, serviços e middlewares
@@ -66,7 +99,7 @@ src/
 
 ## Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Linguagem**: TypeScript
 - **Estilização**: Tailwind CSS
 - **Banco de dados**: Supabase (PostgreSQL)
