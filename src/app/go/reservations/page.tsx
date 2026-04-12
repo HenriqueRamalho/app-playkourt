@@ -28,6 +28,7 @@ export default function ReservationsPage() {
   const [bookings, setBookings] = useState<BookingDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<BookingStatus | 'all'>('all');
 
   useEffect(() => {
     if (authLoading) return;
@@ -40,21 +41,48 @@ export default function ReservationsPage() {
 
   if (authLoading || loading) return null;
 
+  const filtered = activeFilter === 'all' ? bookings : bookings.filter((b) => b.status === activeFilter);
+
+  const filters: { value: BookingStatus | 'all'; label: string }[] = [
+    { value: 'all', label: 'Todas' },
+    { value: BookingStatus.PENDING, label: 'Pendentes' },
+    { value: BookingStatus.CONFIRMED, label: 'Confirmadas' },
+    { value: BookingStatus.CANCELLED, label: 'Canceladas' },
+  ];
+
   return (
     <div className="max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-1">Minhas reservas</h1>
-      <p className="text-gray-500 text-sm mb-8">Histórico de todos os seus agendamentos.</p>
+      <p className="text-gray-500 text-sm mb-6">Histórico de todos os seus agendamentos.</p>
+
+      <div className="flex gap-2 mb-6">
+        {filters.map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => setActiveFilter(value)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              activeFilter === value
+                ? 'bg-green-700 text-white'
+                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       {error && <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">{error}</div>}
 
-      {bookings.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 flex flex-col items-center text-center">
           <span className="text-4xl mb-3">📅</span>
-          <p className="text-gray-500 text-sm">Você ainda não tem nenhuma reserva.</p>
+          <p className="text-gray-500 text-sm">
+            {activeFilter === 'all' ? 'Você ainda não tem nenhuma reserva.' : 'Nenhuma reserva com esse status.'}
+          </p>
         </div>
       ) : (
         <ul className="space-y-3">
-          {bookings.map((booking) => {
+          {filtered.map((booking) => {
             const status = STATUS_CONFIG[booking.status];
             return (
               <li key={booking.id} className="bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between gap-4">

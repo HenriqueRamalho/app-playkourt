@@ -15,6 +15,8 @@ export default function GoPage() {
   const { user } = useAuth();
   const router = useRouter();
 
+  const STORAGE_KEY = 'go:last-search';
+
   const [states, setStates] = useState<StateDTO[]>([]);
   const [cities, setCities] = useState<CityDTO[]>([]);
   const [stateId, setStateId] = useState<number | ''>('');
@@ -27,7 +29,27 @@ export default function GoPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    locationService.listStates().then(setStates).catch(console.error);
+    locationService.listStates().then((loadedStates) => {
+      setStates(loadedStates);
+
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      const { stateId: sId, cityId: cId, neighborhood: nb, sportType: st } = JSON.parse(saved);
+
+      if (sId) {
+        setStateId(sId);
+        setLoadingCities(true);
+        locationService.listCitiesByState(sId)
+          .then((loadedCities) => {
+            setCities(loadedCities);
+            if (cId) setCityId(cId);
+          })
+          .catch(console.error)
+          .finally(() => setLoadingCities(false));
+      }
+      if (nb) setNeighborhood(nb);
+      if (st) setSportType(st);
+    }).catch(console.error);
   }, []);
 
   const handleStateChange = (id: number) => {
@@ -47,11 +69,9 @@ export default function GoPage() {
     setSearching(true);
     setError(null);
     try {
-      const data = await goService.searchCourts({
-        cityId: Number(cityId),
-        neighborhood: neighborhood || undefined,
-        sportType: (sportType as SportType) || undefined,
-      });
+      const filters = { cityId: Number(cityId), neighborhood: neighborhood || undefined, sportType: (sportType as SportType) || undefined };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ stateId, cityId, neighborhood, sportType }));
+      const data = await goService.searchCourts(filters);
       setResults(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao buscar quadras');

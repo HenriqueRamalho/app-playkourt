@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { goService, CourtSearchResultDTO } from '@/infrastructure/frontend-services/api/go.service';
 import { SPORT_TYPE_LABELS } from '@/domain/court/entity/court.interface';
+import { generateFakeScheduling } from './scheduling-fake-data';
 
 const TIME_SLOTS = Array.from({ length: 32 }, (_, i) => {
   const totalMinutes = 6 * 60 + i * 30;
@@ -62,8 +63,19 @@ export default function SchedulingPage() {
     <div className="max-w-lg mx-auto">
       <Link href="/go" className="text-sm text-gray-500 hover:text-gray-700">← Voltar para busca</Link>
 
-      <h1 className="mt-4 text-2xl font-bold text-gray-900 mb-1">Agendar quadra</h1>
-      <p className="text-gray-500 text-sm mb-8">Escolha a data e o horário desejados.</p>
+      <div className="mt-4 mb-1 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Agendar quadra</h1>
+          <p className="text-gray-500 text-sm mb-8">Escolha a data e o horário desejados.</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => { const f = generateFakeScheduling(); setDate(f.date); setStartTime(f.startTime); setDurationHours(f.durationHours); }}
+          className="text-xs font-medium text-gray-500 border border-dashed border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-100 transition-colors shrink-0"
+        >
+          Preencher automaticamente
+        </button>
+      </div>
 
       {court && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
