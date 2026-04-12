@@ -1,5 +1,3 @@
-create type booking_status as enum ('pending', 'confirmed', 'cancelled');
-
 create table bookings (
   id             uuid primary key default gen_random_uuid(),
   court_id       uuid not null references courts(id) on delete cascade,
@@ -7,7 +5,7 @@ create table bookings (
   date           date not null,
   start_time     time not null,
   duration_hours numeric(3,1) not null check (duration_hours between 0.5 and 4),
-  status         booking_status not null default 'pending',
+  status         text not null default 'pending',
   created_at     timestamptz not null default now()
 );
 
