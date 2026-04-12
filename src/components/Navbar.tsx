@@ -16,7 +16,8 @@ export default function Navbar() {
       <div className="flex items-center gap-4 text-sm">
         {loading ? null : user ? (
           <>
-            <Link href="/venue" className="text-green-100 hover:text-white transition-colors">Venues</Link>
+            <Link href="/admin" className="text-green-100 hover:text-white transition-colors">Admin</Link>
+            <Link href="/backoffice" className="text-green-100 hover:text-white transition-colors">Backoffice</Link>
             <span className="text-green-300 hidden sm:inline">{user.email}</span>
             <button
               onClick={signOut}
