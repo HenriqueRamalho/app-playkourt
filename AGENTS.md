@@ -10,6 +10,9 @@ Esse projeto é um microsaas usando nextjs e supabase.
 O projeto usa supabase mas é desajado evitar um acoplamento forte, por isso não são utilizadas as policies do banco do supabase.
 Usamos clean architecture. 
 
+## Supabase
+Neste projeto jamais usamos as policies do supabase pois desejamos preservar a regra de negócio totalmente no código.
+Não usamos os ENUMs das tabelas do supabase, pois deixamos os enums no código. O objetivo é evitar recriar a tabela caso seja necessário alterar os enums.
 
 ## URLs de acesso
 

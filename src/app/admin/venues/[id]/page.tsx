@@ -64,6 +64,9 @@ export default function AdminVenueDetailPage() {
                 <Link href={`/admin/venues/${venue.id}/court/add`} className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors">
                   + Adicionar quadra
                 </Link>
+                <Link href={`/admin/venues/${venue.id}/reservations`} className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                  Reservas
+                </Link>
               </div>
             </div>
 
