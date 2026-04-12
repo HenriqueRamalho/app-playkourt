@@ -1,7 +1,7 @@
 import { supabase } from '@/infrastructure/database/supabase/server/client';
 import { Court, SportType } from '@/domain/court/entity/court.interface';
 import { CourtEntity } from '@/domain/court/entity/court.entity';
-import { CourtRepositoryInterface } from '@/domain/court/repository/court-repository.interface';
+import { CourtRepositoryInterface, CourtSearchFilters } from '@/domain/court/repository/court-repository.interface';
 
 export class SupabaseCourtRepository implements CourtRepositoryInterface {
   private fromDatabase(data: Record<string, unknown>): Court {
@@ -78,5 +78,31 @@ export class SupabaseCourtRepository implements CourtRepositoryInterface {
 
     if (error) throw error;
     return data.map((d) => this.fromDatabase(d));
+  }
+
+  async search(filters: CourtSearchFilters): Promise<(Court & { venueName: string; neighborhood: string; cityName: string })[]> {
+    let query = supabase
+      .from('courts')
+      .select('*, venues!venue_id ( name, neighborhood, cities!city_id ( name ) )')
+      .eq('is_active', true)
+      .eq('venues.city_id', filters.cityId);
+
+    if (filters.sportType) query = query.eq('sport_type', filters.sportType);
+    if (filters.neighborhood) query = query.ilike('venues.neighborhood', `%${filters.neighborhood}%`);
+
+    const { data, error } = await query.order('created_at', { ascending: true });
+    if (error) throw error;
+
+    return (data as Record<string, unknown>[])
+      .filter((d) => d.venues !== null)
+      .map((d) => {
+        const venue = d.venues as { name: string; neighborhood: string; cities: { name: string } };
+        return {
+          ...this.fromDatabase(d),
+          venueName: venue.name,
+          neighborhood: venue.neighborhood ?? '',
+          cityName: venue.cities?.name ?? '',
+        };
+      });
   }
 }
