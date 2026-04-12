@@ -83,14 +83,33 @@ Acesse [https://localplaykourt.com:3000](https://localplaykourt.com:3000).
 
 5. Acesse [https://localplaykourt.com:3000](https://localplaykourt.com:3000).
 
+## Rotas da aplicação
+
+| Rota | Descrição |
+|------|-----------|
+| `/` | Landing page |
+| `/auth/login` | Login |
+| `/auth/register` | Cadastro |
+| `/go` | Área do jogador — explorar quadras |
+| `/go/reservations` | Minhas reservas |
+| `/go/profile` | Perfil do jogador |
+| `/admin` | Área do gestor de venues |
+| `/admin/venues` | Gerenciar venues |
+| `/accounts/profile` | Dados pessoais da conta |
+| `/backoffice` | Painel administrativo da plataforma |
+
 ## Estrutura do projeto
 
 ```
 src/
 ├── app/                  # Rotas e páginas (Next.js App Router)
+│   ├── (main)/           # Rotas públicas com Navbar
 │   ├── api/              # API Routes
 │   ├── auth/             # Login, registro e callback OAuth
-│   └── venue/            # Gestão de venues e quadras
+│   ├── go/               # Área do jogador
+│   ├── admin/            # Área do gestor de venues
+│   ├── accounts/         # Gestão de dados pessoais
+│   └── backoffice/       # Painel administrativo
 ├── application/          # Casos de uso
 ├── domain/               # Entidades e interfaces de repositório
 ├── infrastructure/       # Repositórios, controllers, serviços e middlewares
