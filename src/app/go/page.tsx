@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { locationService, StateDTO, CityDTO } from '@/infrastructure/frontend-services/api/location.service';
-import { goService, CourtSearchResultDTO } from '@/infrastructure/frontend-services/api/go.service';
+import { goService, VenueSearchResultDTO } from '@/infrastructure/frontend-services/api/go.service';
 import { SportType, SPORT_TYPE_LABELS } from '@/domain/court/entity/court.interface';
 import { useEffect } from 'react';
 
@@ -25,7 +25,7 @@ export default function GoPage() {
   const [sportType, setSportType] = useState<SportType | ''>('');
   const [loadingCities, setLoadingCities] = useState(false);
   const [searching, setSearching] = useState(false);
-  const [results, setResults] = useState<CourtSearchResultDTO[] | null>(null);
+  const [results, setResults] = useState<VenueSearchResultDTO[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -80,9 +80,9 @@ export default function GoPage() {
     }
   };
 
-  const handleSchedule = (courtId: string) => {
+  const handleSchedule = (venueId: string) => {
     if (!user) { router.push('/auth/login'); return; }
-    router.push(`/go/scheduling/${courtId}`);
+    router.push(`/go/venue/${venueId}/scheduling`);
   };
 
   return (
@@ -145,15 +145,19 @@ export default function GoPage() {
           </div>
         ) : (
           <ul className="space-y-3">
-            {results.map((court) => (
-              <li key={court.id} className="bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-gray-900 text-sm">{court.name}</span>
-                  <span className="text-xs text-gray-500">{court.venueName} · {court.neighborhood} · {court.cityName}</span>
-                  <span className="text-xs text-green-700 font-medium">{SPORT_TYPE_LABELS[court.sportType]} · R$ {court.pricePerHour.toFixed(2)}/h</span>
+            {results.map((venue) => (
+              <li key={venue.venueId} className="bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <span className="font-semibold text-gray-900 text-sm">{venue.venueName}</span>
+                  <span className="text-xs text-gray-500">
+                    {[venue.street, venue.number].filter(Boolean).join(', ')}{venue.neighborhood ? ` - ${venue.neighborhood}` : ''}{venue.cityName ? ` - ${venue.cityName}` : ''}
+                  </span>
+                  <span className="text-xs text-green-700">
+                    {venue.sports.map((s) => `${SPORT_TYPE_LABELS[s.sportType]} (${s.count} ${s.count === 1 ? 'quadra' : 'quadras'})`).join(' | ')}
+                  </span>
                 </div>
                 <button
-                  onClick={() => handleSchedule(court.id)}
+                  onClick={() => handleSchedule(venue.venueId)}
                   className="shrink-0 px-4 py-2 bg-green-700 text-white text-xs font-medium rounded-lg hover:bg-green-600 transition-colors"
                 >
                   Agendar

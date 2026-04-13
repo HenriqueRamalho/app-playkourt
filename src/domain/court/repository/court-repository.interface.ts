@@ -6,11 +6,21 @@ export interface CourtSearchFilters {
   sportType?: SportType;
 }
 
+export interface VenueSearchResult {
+  venueId: string;
+  venueName: string;
+  street: string;
+  number: string;
+  neighborhood: string;
+  cityName: string;
+  sports: { sportType: SportType; count: number }[];
+}
+
 export interface CourtRepositoryInterface {
   create(court: Omit<Court, 'id' | 'createdAt'>): Promise<Court>;
   findById(id: string): Promise<Court | null>;
   findByVenueId(venueId: string): Promise<Court[]>;
   update(id: string, court: Partial<Omit<Court, 'id' | 'venueId' | 'createdAt'>>): Promise<Court>;
   delete(id: string): Promise<void>;
-  search(filters: CourtSearchFilters): Promise<(Court & { venueName: string; neighborhood: string; cityName: string })[]>;
+  searchVenues(filters: CourtSearchFilters): Promise<VenueSearchResult[]>;
 }

@@ -1,7 +1,7 @@
 import { supabase } from '@/infrastructure/database/supabase/server/client';
 import { Court, SportType } from '@/domain/court/entity/court.interface';
 import { CourtEntity } from '@/domain/court/entity/court.entity';
-import { CourtRepositoryInterface, CourtSearchFilters } from '@/domain/court/repository/court-repository.interface';
+import { CourtRepositoryInterface, CourtSearchFilters, VenueSearchResult } from '@/domain/court/repository/court-repository.interface';
 
 export class SupabaseCourtRepository implements CourtRepositoryInterface {
   private fromDatabase(data: Record<string, unknown>): Court {
@@ -80,29 +80,45 @@ export class SupabaseCourtRepository implements CourtRepositoryInterface {
     return data.map((d) => this.fromDatabase(d));
   }
 
-  async search(filters: CourtSearchFilters): Promise<(Court & { venueName: string; neighborhood: string; cityName: string })[]> {
+  async searchVenues(filters: CourtSearchFilters): Promise<VenueSearchResult[]> {
     let query = supabase
       .from('courts')
-      .select('*, venues!venue_id ( name, neighborhood, cities!city_id ( name ) )')
+      .select('sport_type, venues!venue_id ( id, name, street, number, neighborhood, cities!city_id ( name ) )')
       .eq('is_active', true)
       .eq('venues.city_id', filters.cityId);
 
     if (filters.sportType) query = query.eq('sport_type', filters.sportType);
     if (filters.neighborhood) query = query.ilike('venues.neighborhood', `%${filters.neighborhood}%`);
 
-    const { data, error } = await query.order('created_at', { ascending: true });
+    const { data, error } = await query;
     if (error) throw error;
 
-    return (data as Record<string, unknown>[])
-      .filter((d) => d.venues !== null)
-      .map((d) => {
-        const venue = d.venues as { name: string; neighborhood: string; cities: { name: string } };
-        return {
-          ...this.fromDatabase(d),
+    const venueMap = new Map<string, VenueSearchResult>();
+
+    for (const d of data as Record<string, unknown>[]) {
+      const venue = d.venues as { id: string; name: string; street: string; number: string; neighborhood: string; cities: { name: string } } | null;
+      if (!venue) continue;
+
+      const sportType = d.sport_type as SportType;
+
+      if (!venueMap.has(venue.id)) {
+        venueMap.set(venue.id, {
+          venueId: venue.id,
           venueName: venue.name,
+          street: venue.street ?? '',
+          number: venue.number ?? '',
           neighborhood: venue.neighborhood ?? '',
           cityName: venue.cities?.name ?? '',
-        };
-      });
+          sports: [],
+        });
+      }
+
+      const entry = venueMap.get(venue.id)!;
+      const existing = entry.sports.find((s) => s.sportType === sportType);
+      if (existing) existing.count++;
+      else entry.sports.push({ sportType, count: 1 });
+    }
+
+    return Array.from(venueMap.values());
   }
 }

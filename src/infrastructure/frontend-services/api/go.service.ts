@@ -2,16 +2,14 @@ import { supabase } from '@/infrastructure/frontend-services/supabase';
 import { SportType } from '@/domain/court/entity/court.interface';
 import { BookingStatus } from '@/domain/booking/entity/booking.interface';
 
-export interface CourtSearchResultDTO {
-  id: string;
+export interface VenueSearchResultDTO {
   venueId: string;
-  name: string;
-  sportType: SportType;
-  description?: string;
-  pricePerHour: number;
   venueName: string;
+  street: string;
+  number: string;
   neighborhood: string;
   cityName: string;
+  sports: { sportType: SportType; count: number }[];
 }
 
 export interface BookingDTO {
@@ -35,7 +33,7 @@ async function getAuthHeader(): Promise<string> {
 }
 
 export const goService = {
-  async searchCourts(params: { cityId: number; neighborhood?: string; sportType?: SportType }): Promise<CourtSearchResultDTO[]> {
+  async searchCourts(params: { cityId: number; neighborhood?: string; sportType?: SportType }): Promise<VenueSearchResultDTO[]> {
     const query = new URLSearchParams({ cityId: String(params.cityId) });
     if (params.neighborhood) query.set('neighborhood', params.neighborhood);
     if (params.sportType) query.set('sportType', params.sportType);
@@ -72,7 +70,7 @@ export const goService = {
     return res.json();
   },
 
-  async getCourtById(courtId: string): Promise<CourtSearchResultDTO> {
+  async getCourtById(courtId: string): Promise<VenueSearchResultDTO> {
     const res = await fetch(`/api/go/courts/${courtId}`);
     if (!res.ok) {
       const { error } = await res.json();
