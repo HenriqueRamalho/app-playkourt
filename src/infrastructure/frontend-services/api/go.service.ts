@@ -12,6 +12,26 @@ export interface VenueSearchResultDTO {
   sports: { sportType: SportType; count: number }[];
 }
 
+export interface VenueDetailDTO {
+  venue: {
+    id: string;
+    name: string;
+    street?: string;
+    number?: string;
+    neighborhood?: string;
+    cityName: string;
+    stateUf: string;
+    phone?: string;
+  };
+  courts: {
+    id: string;
+    name: string;
+    sportType: SportType;
+    description?: string;
+    pricePerHour: number;
+  }[];
+}
+
 export interface BookingDTO {
   id: string;
   courtId: string;
@@ -66,6 +86,15 @@ export const goService = {
     if (!res.ok) {
       const { error } = await res.json();
       throw new Error(error ?? 'Failed to create booking');
+    }
+    return res.json();
+  },
+
+  async getVenueWithCourts(venueId: string): Promise<VenueDetailDTO> {
+    const res = await fetch(`/api/go/venues/${venueId}`);
+    if (!res.ok) {
+      const { error } = await res.json();
+      throw new Error(error ?? 'Venue not found');
     }
     return res.json();
   },
