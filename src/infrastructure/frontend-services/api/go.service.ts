@@ -2,6 +2,18 @@ import { supabase } from '@/infrastructure/frontend-services/supabase';
 import { SportType } from '@/domain/court/entity/court.interface';
 import { BookingStatus } from '@/domain/booking/entity/booking.interface';
 
+export interface CourtDetailDTO {
+  id: string;
+  venueId: string;
+  name: string;
+  sportType: SportType;
+  description?: string;
+  pricePerHour: number;
+  venueName: string;
+  neighborhood: string;
+  cityName: string;
+}
+
 export interface VenueSearchResultDTO {
   venueId: string;
   venueName: string;
@@ -99,7 +111,7 @@ export const goService = {
     return res.json();
   },
 
-  async getCourtById(courtId: string): Promise<VenueSearchResultDTO> {
+  async getCourtById(courtId: string): Promise<CourtDetailDTO> {
     const res = await fetch(`/api/go/courts/${courtId}`);
     if (!res.ok) {
       const { error } = await res.json();

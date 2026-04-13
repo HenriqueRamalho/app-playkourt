@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { goService, CourtSearchResultDTO } from '@/infrastructure/frontend-services/api/go.service';
-import { SPORT_TYPE_LABELS } from '@/domain/court/entity/court.interface';
+import { goService, CourtDetailDTO } from '@/infrastructure/frontend-services/api/go.service';
+import { SPORT_TYPE_LABELS, SportType } from '@/domain/court/entity/court.interface';
 import { generateFakeScheduling } from './scheduling-fake-data';
 
 const TIME_SLOTS = Array.from({ length: 32 }, (_, i) => {
@@ -24,7 +24,7 @@ export default function SchedulingPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [court, setCourt] = useState<CourtSearchResultDTO | null>(null);
+  const [court, setCourt] = useState<CourtDetailDTO | null>(null);
   const [fetching, setFetching] = useState(true);
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -81,7 +81,7 @@ export default function SchedulingPage() {
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
           <p className="font-semibold text-gray-900 text-sm">{court.name}</p>
           <p className="text-xs text-gray-500 mt-0.5">{court.venueName} · {court.neighborhood} · {court.cityName}</p>
-          <p className="text-xs text-green-700 font-medium mt-1">{SPORT_TYPE_LABELS[court.sportType]} · R$ {court.pricePerHour.toFixed(2)}/h</p>
+          <p className="text-xs text-green-700 font-medium mt-1">{SPORT_TYPE_LABELS[court.sportType as SportType]} · R$ {court.pricePerHour.toFixed(2)}/h</p>
         </div>
       )}
 
