@@ -1,6 +1,7 @@
 import { supabase } from '@/infrastructure/frontend-services/supabase';
 import { SportType } from '@/domain/court/entity/court.interface';
 import { BookingStatus } from '@/domain/booking/entity/booking.interface';
+import { BusinessHours } from '@/domain/venue/entity/venue.interface';
 
 export interface CourtDetailDTO {
   id: string;
@@ -12,6 +13,7 @@ export interface CourtDetailDTO {
   venueName: string;
   neighborhood: string;
   cityName: string;
+  businessHours: BusinessHours[];
 }
 
 export interface VenueSearchResultDTO {
@@ -34,7 +36,7 @@ export interface VenueDetailDTO {
     cityName: string;
     stateUf: string;
     phone?: string;
-    businessHours: { dayOfWeek: number; openTime: string | null; closeTime: string | null; isClosed: boolean }[];
+    businessHours: BusinessHours[];
   };
   courts: {
     id: string;

@@ -1,5 +1,7 @@
 import { Booking, BookingStatus } from '@/domain/booking/entity/booking.interface';
 import { BookingRepositoryInterface } from '@/domain/booking/repository/booking-repository.interface';
+import { CourtSchedule } from '@/domain/court/value-object/CourtSchedule';
+import { BusinessHours } from '@/domain/venue/entity/venue.interface';
 
 export interface CreateBookingInput {
   courtId: string;
@@ -7,6 +9,7 @@ export interface CreateBookingInput {
   date: string;
   startTime: string;
   durationHours: number;
+  businessHours: BusinessHours[];
 }
 
 export class CreateBookingUseCase {
@@ -17,6 +20,21 @@ export class CreateBookingUseCase {
     if (!input.startTime) throw new Error('Start time is required');
     if (input.durationHours < 1 || input.durationHours > 4) throw new Error('Duration must be between 1 and 4 hours');
 
-    return this.bookingRepository.create({ ...input, status: BookingStatus.PENDING });
+    const schedule = new CourtSchedule(input.businessHours);
+
+    if (!schedule.isDateOpen(input.date)) {
+      const reason = schedule.getClosedReason(input.date);
+      throw new Error(reason ?? 'Este dia não está disponível para reservas.');
+    }
+
+    if (!schedule.isSlotAvailable(input.date, input.startTime, input.durationHours)) {
+      const hours = schedule.getHoursForDate(input.date);
+      throw new Error(
+        `Horário fora do período de funcionamento. Este local funciona das ${hours?.openTime} às ${hours?.closeTime}.`
+      );
+    }
+
+    const { businessHours: _, ...bookingData } = input;
+    return this.bookingRepository.create({ ...bookingData, status: BookingStatus.PENDING });
   }
 }

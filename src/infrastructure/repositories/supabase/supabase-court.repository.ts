@@ -13,6 +13,12 @@ export class SupabaseCourtRepository implements CourtRepositoryInterface {
       description: data.description as string | undefined,
       pricePerHour: Number(data.price_per_hour),
       isActive: data.is_active as boolean,
+      businessHours: (() => {
+        const raw = data.business_hours;
+        if (Array.isArray(raw)) return raw;
+        if (typeof raw === 'string') { try { return JSON.parse(raw); } catch { return undefined; } }
+        return undefined;
+      })(),
       createdAt: new Date(data.created_at as string),
     });
   }

@@ -1,3 +1,5 @@
+import { BusinessHours } from '@/domain/venue/entity/venue.interface';
+
 export enum SportType {
   VOLLEYBALL = 'volleyball',
   BEACH_VOLLEYBALL = 'beach_volleyball',
@@ -32,5 +34,6 @@ export interface Court {
   description?: string;
   pricePerHour: number;
   isActive: boolean;
+  businessHours?: BusinessHours[];
   createdAt: Date;
 }

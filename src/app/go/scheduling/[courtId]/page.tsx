@@ -6,18 +6,11 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { goService, CourtDetailDTO } from '@/infrastructure/frontend-services/api/go.service';
 import { SPORT_TYPE_LABELS, SportType } from '@/domain/court/entity/court.interface';
+import { CourtSchedule } from '@/domain/court/value-object/CourtSchedule';
 import { generateFakeScheduling } from './scheduling-fake-data';
 
-const TIME_SLOTS = Array.from({ length: 32 }, (_, i) => {
-  const totalMinutes = 6 * 60 + i * 30;
-  const h = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
-  const m = String(totalMinutes % 60).padStart(2, '0');
-  return `${h}:${m}`;
-});
-
 const DURATION_OPTIONS = [1, 1.5, 2, 2.5, 3, 3.5, 4];
-
-const selectClass = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent';
+const selectClass = 'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed';
 
 export default function SchedulingPage() {
   const { courtId } = useParams<{ courtId: string }>();
@@ -44,6 +37,21 @@ export default function SchedulingPage() {
   }, [courtId, user, authLoading, router]);
 
   if (authLoading || fetching) return null;
+
+  const schedule = court ? new CourtSchedule(court.businessHours) : null;
+  const closedReason = date && schedule ? schedule.getClosedReason(date) : null;
+  const isDateOpen = date && schedule ? schedule.isDateOpen(date) : true;
+  const availableSlots = date && schedule && isDateOpen ? schedule.getAvailableSlots(date, durationHours) : [];
+
+  const handleDateChange = (newDate: string) => {
+    setDate(newDate);
+    setStartTime('');
+  };
+
+  const handleDurationChange = (newDuration: number) => {
+    setDurationHours(newDuration);
+    setStartTime('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,29 +104,45 @@ export default function SchedulingPage() {
               required
               min={today}
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(e) => handleDateChange(e.target.value)}
               className={selectClass}
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Horário de início <span className="text-red-500">*</span></label>
-            <select required value={startTime} onChange={(e) => setStartTime(e.target.value)} className={selectClass}>
-              <option value="">Selecione</option>
-              {TIME_SLOTS.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
+            {date && closedReason && (
+              <p className="mt-2 text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                ⚠️ {closedReason}
+              </p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Duração <span className="text-red-500">*</span></label>
-            <select value={durationHours} onChange={(e) => setDurationHours(Number(e.target.value))} className={selectClass}>
+            <select value={durationHours} onChange={(e) => handleDurationChange(Number(e.target.value))} className={selectClass}>
               {DURATION_OPTIONS.map((d) => (
                 <option key={d} value={d}>{d === 1 ? '1 hora' : `${d} horas`}</option>
               ))}
             </select>
           </div>
 
-          {date && startTime && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Horário de início <span className="text-red-500">*</span></label>
+            <select
+              required
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              disabled={!date || !isDateOpen}
+              className={selectClass}
+            >
+              <option value="">
+                {!date ? 'Selecione uma data primeiro' : !isDateOpen ? 'Indisponível neste dia' : availableSlots.length === 0 ? 'Nenhum horário disponível' : 'Selecione'}
+              </option>
+              {availableSlots.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+            {date && isDateOpen && availableSlots.length === 0 && (
+              <p className="mt-2 text-sm text-gray-500">Nenhum horário disponível para {durationHours}h neste dia.</p>
+            )}
+          </div>
+
+          {date && startTime && isDateOpen && (
             <div className="bg-gray-50 rounded-lg px-4 py-3 text-sm text-gray-600">
               Agendamento: <strong>{date}</strong> às <strong>{startTime}</strong> por <strong>{durationHours}h</strong>
             </div>
@@ -130,7 +154,7 @@ export default function SchedulingPage() {
             </button>
             <button
               type="submit"
-              disabled={loading || !date || !startTime}
+              disabled={loading || !date || !startTime || !isDateOpen}
               className="px-6 py-2 bg-green-700 text-white text-sm font-medium rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Agendando...' : 'Confirmar agendamento'}

@@ -4,6 +4,7 @@ import { CreateBookingUseCase } from '@/application/use-cases/booking/CreateBook
 import { ListUserBookingsUseCase } from '@/application/use-cases/booking/ListUserBookingsUseCase';
 import { SupabaseCourtRepository } from '@/infrastructure/repositories/supabase/supabase-court.repository';
 import { SupabaseBookingRepository } from '@/infrastructure/repositories/supabase/supabase-booking.repository';
+import { SupabaseVenueRepository } from '@/infrastructure/repositories/supabase/supabase-venue.repository';
 import { SportType } from '@/domain/court/entity/court.interface';
 
 export class GoController {
@@ -41,9 +42,20 @@ export class GoController {
   static async createBooking(req: NextRequest, user: { id: string; email: string }): Promise<NextResponse> {
     try {
       const body = await req.json();
+      const courtRepository = new SupabaseCourtRepository();
+      const venueRepository = new SupabaseVenueRepository();
+
+      const court = await courtRepository.findById(body.courtId);
+      if (!court) return NextResponse.json({ error: 'Court not found' }, { status: 404 });
+
+      const venue = await venueRepository.findById(court.venueId);
+      if (!venue) return NextResponse.json({ error: 'Venue not found' }, { status: 404 });
+
+      const businessHours = court.businessHours ?? venue.businessHours ?? [];
+
       const bookingRepository = new SupabaseBookingRepository();
       const useCase = new CreateBookingUseCase(bookingRepository);
-      const booking = await useCase.execute({ ...body, userId: user.id });
+      const booking = await useCase.execute({ ...body, userId: user.id, businessHours });
       return NextResponse.json(booking, { status: 201 });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Internal server error';

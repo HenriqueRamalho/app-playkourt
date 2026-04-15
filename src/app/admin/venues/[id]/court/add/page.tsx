@@ -91,6 +91,10 @@ export default function AddCourtPage() {
             <textarea id="description" name="description" rows={3} value={form.description} onChange={handleChange} placeholder="Informações adicionais sobre a quadra..." className={`${inputClass} resize-none`} />
           </div>
 
+          <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-700">
+            🕐 Esta quadra seguirá o horário de funcionamento do local. Personalizações por quadra estarão disponíveis em breve.
+          </div>
+
           <div className="flex items-center justify-end gap-3 pt-2">
             <button type="button" onClick={() => router.back()} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
               Cancelar

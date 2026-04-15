@@ -126,6 +126,7 @@ export default function AdminVenueDetailPage() {
                         {SPORT_TYPE_LABELS[court.sportType]} · R$ {court.pricePerHour.toFixed(2)}/h
                       </p>
                       {court.description && <p className="text-sm text-gray-400 mt-0.5">{court.description}</p>}
+                      <p className="text-xs text-gray-400 mt-1">🕐 Horário: segue o do local</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`text-xs font-medium px-2 py-1 rounded-full ${court.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>

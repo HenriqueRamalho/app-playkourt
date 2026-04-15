@@ -8,6 +8,7 @@ export class CourtEntity implements Court {
   description?: string;
   pricePerHour: number;
   isActive: boolean;
+  businessHours?: import('@/domain/venue/entity/venue.interface').BusinessHours[];
   createdAt: Date;
 
   constructor(params: Omit<Court, 'id' | 'isActive' | 'createdAt'> & Partial<Pick<Court, 'id' | 'isActive' | 'createdAt'>>) {
@@ -18,6 +19,7 @@ export class CourtEntity implements Court {
     this.description = params.description;
     this.pricePerHour = params.pricePerHour;
     this.isActive = params.isActive ?? true;
+    this.businessHours = params.businessHours;
     this.createdAt = params.createdAt ?? new Date();
 
     this.validate();
