@@ -34,6 +34,7 @@ export interface VenueDetailDTO {
     cityName: string;
     stateUf: string;
     phone?: string;
+    businessHours: { dayOfWeek: number; openTime: string | null; closeTime: string | null; isClosed: boolean }[];
   };
   courts: {
     id: string;

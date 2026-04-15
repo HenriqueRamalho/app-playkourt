@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { goService, VenueDetailDTO } from '@/infrastructure/frontend-services/api/go.service';
 import { SportType, SPORT_TYPE_LABELS } from '@/domain/court/entity/court.interface';
+import { DAY_OF_WEEK_LABELS } from '@/domain/venue/entity/venue.interface';
 
 export default function VenueSchedulingPage() {
   const { venueId } = useParams<{ venueId: string }>();
@@ -44,6 +45,23 @@ export default function VenueSchedulingPage() {
             <h1 className="text-2xl font-bold text-gray-900">{venue.name}</h1>
             {addressLine && <p className="mt-1 text-sm text-gray-500">{addressLine}</p>}
             {venue.phone && <p className="mt-0.5 text-sm text-gray-500">{venue.phone}</p>}
+
+            {venue.businessHours?.length > 0 && (
+              <div className="mt-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Horário de funcionamento</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5">
+                  {venue.businessHours.map((h) => (
+                    <div key={h.dayOfWeek} className="flex items-center justify-start text-sm">
+                      <span className="text-gray-500 mr-2">{DAY_OF_WEEK_LABELS[h.dayOfWeek]}</span>
+                      {h.isClosed
+                        ? <span className="text-red-400 text-xs">Fechado</span>
+                        : <span className="text-gray-700 text-xs">{h.openTime} – {h.closeTime}</span>
+                      }
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2 mb-5 flex-wrap">
