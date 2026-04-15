@@ -27,6 +27,7 @@ export class SupabaseVenueRepository implements VenueRepositoryInterface {
       latitude: venue.latitude,
       longitude: venue.longitude,
       is_active: venue.isActive,
+      business_hours: venue.businessHours ?? [],
     };
   }
 
@@ -53,6 +54,14 @@ export class SupabaseVenueRepository implements VenueRepositoryInterface {
       latitude: data.latitude as number | undefined,
       longitude: data.longitude as number | undefined,
       isActive: data.is_active as boolean,
+      businessHours: (() => {
+        const raw = data.business_hours;
+        if (Array.isArray(raw)) return raw;
+        if (typeof raw === 'string') {
+          try { return JSON.parse(raw); } catch { return []; }
+        }
+        return [];
+      })(),
       createdAt: new Date(data.created_at as string),
     });
   }

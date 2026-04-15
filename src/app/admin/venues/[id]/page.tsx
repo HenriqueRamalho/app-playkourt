@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { venueService, VenueDTO } from '@/infrastructure/frontend-services/api/venue.service';
 import { courtService, CourtDTO } from '@/infrastructure/frontend-services/api/court.service';
 import { SPORT_TYPE_LABELS } from '@/domain/court/entity/court.interface';
+import { DAY_OF_WEEK_LABELS, BusinessHours } from '@/domain/venue/entity/venue.interface';
 
 function DetailRow({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
@@ -81,6 +82,26 @@ export default function AdminVenueDetailPage() {
               <DetailRow label="Cidade" value={venue.cityName} />
               <DetailRow label="Estado" value={`${venue.stateUf} — ${venue.stateName}`} />
             </dl>
+
+            {venue.businessHours?.length > 0 && (
+              <>
+                <div className="border-t border-gray-100 mt-6" />
+                <div className="mt-6">
+                  <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Horário de funcionamento</h2>
+                  <ul className="space-y-1.5">
+                    {(venue.businessHours as BusinessHours[]).map((h) => (
+                      <li key={h.dayOfWeek} className="flex items-center gap-4 text-sm">
+                        <span className="w-20 text-gray-500">{DAY_OF_WEEK_LABELS[h.dayOfWeek]}</span>
+                        {h.isClosed
+                          ? <span className="text-red-500">Fechado</span>
+                          : <span className="text-gray-900">{h.openTime} – {h.closeTime}</span>
+                        }
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            )}
           </div>
 
           <div>

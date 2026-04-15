@@ -1,4 +1,4 @@
-import { Venue } from './venue.interface';
+import { Venue, BusinessHours, DEFAULT_BUSINESS_HOURS } from './venue.interface';
 
 export class VenueEntity implements Venue {
   id: string;
@@ -19,6 +19,7 @@ export class VenueEntity implements Venue {
   latitude?: number;
   longitude?: number;
   isActive: boolean;
+  businessHours: BusinessHours[];
   createdAt: Date;
 
   constructor(params: Omit<Venue, 'id' | 'isActive' | 'createdAt'> & Partial<Pick<Venue, 'id' | 'isActive' | 'createdAt'>>) {
@@ -40,6 +41,7 @@ export class VenueEntity implements Venue {
     this.latitude = params.latitude;
     this.longitude = params.longitude;
     this.isActive = params.isActive ?? true;
+    this.businessHours = params.businessHours ?? DEFAULT_BUSINESS_HOURS;
     this.createdAt = params.createdAt ?? new Date();
 
     this.validate();

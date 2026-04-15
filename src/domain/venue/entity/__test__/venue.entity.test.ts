@@ -1,4 +1,5 @@
 import { VenueEntity } from '@/domain/venue/entity/venue.entity';
+import { DEFAULT_BUSINESS_HOURS } from '@/domain/venue/entity/venue.interface';
 
 const validParams = {
   ownerId: 'owner-1',
@@ -53,6 +54,27 @@ describe('VenueEntity', () => {
 
       expect(venue.createdAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
       expect(venue.createdAt.getTime()).toBeLessThanOrEqual(after.getTime());
+    });
+
+    it('defaults businessHours to DEFAULT_BUSINESS_HOURS', () => {
+      const venue = new VenueEntity(validParams);
+
+      expect(venue.businessHours).toEqual(DEFAULT_BUSINESS_HOURS);
+      expect(venue.businessHours).toHaveLength(7);
+    });
+
+    it('uses provided businessHours when given', () => {
+      const customHours = DEFAULT_BUSINESS_HOURS.map((h) => ({ ...h, isClosed: true }));
+      const venue = new VenueEntity({ ...validParams, businessHours: customHours });
+
+      expect(venue.businessHours.every((h) => h.isClosed)).toBe(true);
+    });
+
+    it('defaults sunday to closed', () => {
+      const venue = new VenueEntity(validParams);
+      const sunday = venue.businessHours.find((h) => h.dayOfWeek === 0);
+
+      expect(sunday?.isClosed).toBe(true);
     });
   });
 

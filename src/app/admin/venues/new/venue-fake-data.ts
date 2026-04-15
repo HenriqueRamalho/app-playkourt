@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker/locale/pt_BR';
 import { CreateVenueDTO } from '@/infrastructure/frontend-services/api/venue.service';
+import { BusinessHours, DEFAULT_BUSINESS_HOURS } from '@/domain/venue/entity/venue.interface';
 
 // Alguns municípios reais para testes (código IBGE → estado)
 const SAMPLE_CITIES: { cityId: number; stateId: number }[] = [
@@ -12,6 +13,30 @@ const SAMPLE_CITIES: { cityId: number; stateId: number }[] = [
   { cityId: 2927408, stateId: 29 }, // Salvador - BA
   { cityId: 2304400, stateId: 23 }, // Fortaleza - CE
 ];
+
+const HOUR_PRESETS = [
+  { openTime: '06:00', closeTime: '22:00' }, // academia / arena
+  { openTime: '08:00', closeTime: '20:00' }, // comercial
+  { openTime: '07:00', closeTime: '23:00' }, // estendido
+];
+
+function generateFakeBusinessHours(): BusinessHours[] {
+  const preset = faker.helpers.arrayElement(HOUR_PRESETS);
+  const closedOnSunday = faker.datatype.boolean({ probability: 0.6 });
+  const closedOnSaturday = faker.datatype.boolean({ probability: 0.2 });
+
+  return DEFAULT_BUSINESS_HOURS.map((h) => {
+    const isClosed =
+      (h.dayOfWeek === 0 && closedOnSunday) ||
+      (h.dayOfWeek === 6 && closedOnSaturday);
+    return {
+      ...h,
+      isClosed,
+      openTime: isClosed ? null : preset.openTime,
+      closeTime: isClosed ? null : preset.closeTime,
+    };
+  });
+}
 
 export function generateFakeVenue(): CreateVenueDTO {
   const location = faker.helpers.arrayElement(SAMPLE_CITIES);
@@ -26,5 +51,6 @@ export function generateFakeVenue(): CreateVenueDTO {
     cityId: location.cityId,
     stateId: location.stateId,
     zipCode: faker.string.numeric(5) + '-' + faker.string.numeric(3),
+    businessHours: generateFakeBusinessHours(),
   };
 }

@@ -4,12 +4,15 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { venueService, CreateVenueDTO } from '@/infrastructure/frontend-services/api/venue.service';
+import { DEFAULT_BUSINESS_HOURS } from '@/domain/venue/entity/venue.interface';
 import { generateFakeVenue } from './venue-fake-data';
 import StateCitySelect from '@/components/StateCitySelect';
+import BusinessHoursEditor from '@/components/BusinessHoursEditor';
 
 const EMPTY_FORM: CreateVenueDTO = {
   name: '', cnpj: '', phone: '', street: '', number: '',
   complement: '', neighborhood: '', cityId: 0, stateId: 0, zipCode: '',
+  businessHours: DEFAULT_BUSINESS_HOURS,
 };
 
 export default function NewVenuePage() {
@@ -114,6 +117,16 @@ export default function NewVenuePage() {
                 onCityChange={(id) => setForm((prev) => ({ ...prev, cityId: id }))}
               />
             </div>
+          </section>
+
+          <div className="border-t border-gray-100" />
+
+          <section>
+            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Horário de funcionamento</h2>
+            <BusinessHoursEditor
+              value={form.businessHours ?? []}
+              onChange={(businessHours) => setForm((prev) => ({ ...prev, businessHours }))}
+            />
           </section>
 
           <div className="flex items-center justify-end gap-3 pt-2">

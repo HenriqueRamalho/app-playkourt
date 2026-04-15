@@ -38,7 +38,8 @@ create table if not exists venues (
   latitude     numeric(9,6),
   longitude    numeric(9,6),
   is_active    boolean      default true,
-  created_at   timestamptz  default now()
+  created_at   timestamptz  default now(),
+  business_hours jsonb not null default '[]'
 );
 
 -- Venue members

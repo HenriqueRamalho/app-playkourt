@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { venueService, CreateVenueDTO, VenueDTO } from '@/infrastructure/frontend-services/api/venue.service';
 import StateCitySelect from '@/components/StateCitySelect';
+import BusinessHoursEditor from '@/components/BusinessHoursEditor';
 
 function venueToForm(venue: VenueDTO): CreateVenueDTO {
   return {
@@ -13,6 +14,7 @@ function venueToForm(venue: VenueDTO): CreateVenueDTO {
     street: venue.street ?? '', number: venue.number ?? '',
     complement: venue.complement ?? '', neighborhood: venue.neighborhood ?? '',
     cityId: venue.cityId, stateId: venue.stateId, zipCode: venue.zipCode ?? '',
+    businessHours: venue.businessHours,
   };
 }
 
@@ -119,6 +121,16 @@ export default function EditVenuePage() {
                   onCityChange={(cid) => setForm((prev) => prev ? { ...prev, cityId: cid } : prev)}
                 />
               </div>
+            </section>
+
+            <div className="border-t border-gray-100" />
+
+            <section>
+              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Horário de funcionamento</h2>
+              <BusinessHoursEditor
+                value={form.businessHours ?? []}
+                onChange={(businessHours) => setForm((prev) => prev ? { ...prev, businessHours } : prev)}
+              />
             </section>
 
             <div className="flex items-center justify-end gap-3 pt-2">

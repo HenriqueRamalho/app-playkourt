@@ -1,4 +1,5 @@
 import { supabase } from '@/infrastructure/frontend-services/supabase';
+import { BusinessHours } from '@/domain/venue/entity/venue.interface';
 
 export interface CreateVenueDTO {
   name: string;
@@ -11,6 +12,7 @@ export interface CreateVenueDTO {
   cityId: number;
   stateId: number;
   zipCode?: string;
+  businessHours?: BusinessHours[];
 }
 
 export interface VenueDTO {
@@ -30,6 +32,7 @@ export interface VenueDTO {
   stateUf: string;
   zipCode?: string;
   isActive: boolean;
+  businessHours: BusinessHours[];
   createdAt: string;
 }
 
