@@ -58,8 +58,13 @@ export class GoController {
       const booking = await useCase.execute({ ...body, userId: user.id, businessHours });
       return NextResponse.json(booking, { status: 201 });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Internal server error';
-      return NextResponse.json({ error: message }, { status: 400 });
+      const isConflict = error instanceof Error &&
+        (error.message.includes('no_overlapping_bookings') || error.message.includes('já está reservado'));
+      const status = isConflict ? 409 : 400;
+      const message = isConflict
+        ? 'Este horário já está reservado. Por favor, escolha outro horário.'
+        : error instanceof Error ? error.message : 'Internal server error';
+      return NextResponse.json({ error: message }, { status });
     }
   }
 }
