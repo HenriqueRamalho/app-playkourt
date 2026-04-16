@@ -8,6 +8,7 @@ const makeRepository = (overrides?: Partial<BookingRepositoryInterface>): Bookin
   findById: jest.fn(),
   findByUserId: jest.fn(),
   findByCourtId: jest.fn(),
+  findActiveByCourtAndDate: jest.fn().mockResolvedValue([]),
   findByVenueId: jest.fn(),
   updateStatus: jest.fn(),
   ...overrides,
@@ -113,6 +114,31 @@ describe('CreateBookingUseCase', () => {
       expect(createMock).toHaveBeenCalledWith(
         expect.not.objectContaining({ businessHours: expect.anything() })
       );
+    });
+  });
+
+  describe('conflict validation', () => {
+    it('throws if the slot conflicts with an existing booking', async () => {
+      const conflictingBooking: Booking = {
+        ...fakeBooking, startTime: '10:00', durationHours: 1,
+      };
+      const repository = makeRepository({
+        findActiveByCourtAndDate: jest.fn().mockResolvedValue([conflictingBooking]),
+      });
+      const useCase = new CreateBookingUseCase(repository);
+      await expect(useCase.execute(validInput)).rejects.toThrow('já está reservado');
+    });
+
+    it('allows booking adjacent to an existing one', async () => {
+      const adjacentBooking: Booking = {
+        ...fakeBooking, startTime: '09:00', durationHours: 1, // termina 10:00
+      };
+      const repository = makeRepository({
+        create: jest.fn().mockResolvedValue(fakeBooking),
+        findActiveByCourtAndDate: jest.fn().mockResolvedValue([adjacentBooking]),
+      });
+      const useCase = new CreateBookingUseCase(repository);
+      await expect(useCase.execute(validInput)).resolves.toBeDefined();
     });
   });
 });

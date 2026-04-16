@@ -1,6 +1,7 @@
 import { Booking, BookingStatus } from '@/domain/booking/entity/booking.interface';
 import { BookingRepositoryInterface } from '@/domain/booking/repository/booking-repository.interface';
 import { CourtSchedule } from '@/domain/court/value-object/CourtSchedule';
+import { BookingConflict } from '@/domain/booking/value-object/BookingConflict';
 import { BusinessHours } from '@/domain/venue/entity/venue.interface';
 
 export interface CreateBookingInput {
@@ -35,6 +36,12 @@ export class CreateBookingUseCase {
     }
 
     const { businessHours: _, ...bookingData } = input;
+
+    const existingBookings = await this.bookingRepository.findActiveByCourtAndDate(input.courtId, input.date);
+    if (BookingConflict.hasConflict(existingBookings, input.startTime, input.durationHours)) {
+      throw new Error('Este horário já está reservado. Por favor, escolha outro horário.');
+    }
+
     return this.bookingRepository.create({ ...bookingData, status: BookingStatus.PENDING });
   }
 }

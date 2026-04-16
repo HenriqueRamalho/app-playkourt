@@ -77,6 +77,18 @@ export class SupabaseBookingRepository implements BookingRepositoryInterface {
     return data.map((d) => this.fromDatabase(d));
   }
 
+  async findActiveByCourtAndDate(courtId: string, date: string): Promise<Booking[]> {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select()
+      .eq('court_id', courtId)
+      .eq('date', date)
+      .in('status', ['pending', 'confirmed']);
+
+    if (error) throw error;
+    return data.map((d) => this.fromDatabase(d));
+  }
+
   async findByVenueId(venueId: string, page: number, pageSize: number): Promise<PaginatedBookings> {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
