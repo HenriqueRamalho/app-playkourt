@@ -93,20 +93,33 @@ export class SupabaseBookingRepository implements BookingRepositoryInterface {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
+    // Busca os court_ids do venue primeiro para filtrar diretamente
+    // na tabela bookings, evitando filtro em join que não usa índice
+    const { data: courts, error: courtsError } = await supabase
+      .from('courts')
+      .select('id')
+      .eq('venue_id', venueId);
+
+    if (courtsError) throw courtsError;
+    if (!courts.length) return { data: [], total: 0, page, pageSize };
+
+    const courtIds = courts.map((c) => c.id);
+
     const { data, error, count } = await supabase
       .from('bookings')
-      .select('*, courts!court_id ( name, sport_type, venue_id, venues!venue_id ( name ) )', { count: 'exact' })
-      .eq('courts.venue_id', venueId)
+      .select('*, courts!court_id ( name, sport_type, venues!venue_id ( name ) )', { count: 'exact' })
+      .in('court_id', courtIds)
       .order('created_at', { ascending: false })
       .range(from, to);
 
     if (error) throw error;
 
-    const bookings = (data as Record<string, unknown>[])
-      .filter((d) => d.courts !== null)
-      .map((d) => this.withDetails(d));
-
-    return { data: bookings, total: count ?? 0, page, pageSize };
+    return {
+      data: (data as Record<string, unknown>[]).map((d) => this.withDetails(d)),
+      total: count ?? 0,
+      page,
+      pageSize,
+    };
   }
 
   async updateStatus(id: string, status: Booking['status']): Promise<Booking> {

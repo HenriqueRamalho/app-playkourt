@@ -64,6 +64,8 @@ create table if not exists courts (
   created_at     timestamptz   default now()
 );
 
+create index courts_venue_id_idx on courts (venue_id);
+
 alter table states        disable row level security;
 alter table cities        disable row level security;
 alter table venues        disable row level security;
