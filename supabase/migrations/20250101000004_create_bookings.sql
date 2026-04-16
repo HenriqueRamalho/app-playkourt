@@ -16,6 +16,20 @@ create index bookings_user_id_idx on bookings (user_id);
 
 alter table bookings disable row level security;
 
+-- Função auxiliar IMMUTABLE necessária para uso em expressão de índice.
+-- Combina date + time em timestamp sem depender do timezone da sessão.
+create or replace function booking_start_ts(d date, t time)
+  returns timestamp language sql immutable strict as
+$$
+  select (d + t)::timestamp;
+$$;
+
+create or replace function booking_end_ts(d date, t time, duration_hours numeric)
+  returns timestamp language sql immutable strict as
+$$
+  select (d + t)::timestamp + make_interval(mins => (duration_hours * 60)::int);
+$$;
+
 -- Previne race condition: o banco garante atomicamente que não existirão
 -- duas reservas ativas (pending ou confirmed) com intervalos sobrepostos
 -- para a mesma quadra no mesmo dia.
@@ -26,9 +40,8 @@ alter table bookings add constraint no_overlapping_bookings
     court_id with =,
     date     with =,
     tsrange(
-      (date::text || ' ' || start_time::text)::timestamp,
-      (date::text || ' ' || start_time::text)::timestamp
-        + (duration_hours || ' hours')::interval
+      booking_start_ts(date, start_time),
+      booking_end_ts(date, start_time, duration_hours)
     ) with &&
   )
   where (status in ('pending', 'confirmed'));
