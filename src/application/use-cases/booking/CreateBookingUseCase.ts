@@ -11,6 +11,7 @@ export interface CreateBookingInput {
   startTime: string;
   durationHours: number;
   businessHours: BusinessHours[];
+  isCourtActive: boolean;
 }
 
 export class CreateBookingUseCase {
@@ -20,6 +21,7 @@ export class CreateBookingUseCase {
     if (!input.date) throw new Error('Date is required');
     if (!input.startTime) throw new Error('Start time is required');
     if (input.durationHours < 1 || input.durationHours > 4) throw new Error('Duration must be between 1 and 4 hours');
+    if (!input.isCourtActive) throw new Error('Esta quadra não está disponível para reservas no momento.');
 
     const schedule = new CourtSchedule(input.businessHours);
 
@@ -35,7 +37,7 @@ export class CreateBookingUseCase {
       );
     }
 
-    const { businessHours: _, ...bookingData } = input;
+    const { businessHours: _, isCourtActive: __, ...bookingData } = input;
 
     const existingBookings = await this.bookingRepository.findActiveByCourtAndDate(input.courtId, input.date);
     if (BookingConflict.hasConflict(existingBookings, input.startTime, input.durationHours)) {

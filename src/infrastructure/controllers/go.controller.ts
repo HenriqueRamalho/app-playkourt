@@ -55,7 +55,7 @@ export class GoController {
 
       const bookingRepository = new SupabaseBookingRepository();
       const useCase = new CreateBookingUseCase(bookingRepository);
-      const booking = await useCase.execute({ ...body, userId: user.id, businessHours });
+      const booking = await useCase.execute({ ...body, userId: user.id, businessHours, isCourtActive: court.isActive });
       return NextResponse.json(booking, { status: 201 });
     } catch (error) {
       const isConflict = error instanceof Error &&

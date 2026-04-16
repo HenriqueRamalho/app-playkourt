@@ -34,6 +34,7 @@ const validInput = {
   startTime: '10:00',
   durationHours: 1,
   businessHours: makeBusinessHours(),
+  isCourtActive: true,
 };
 
 const fakeBooking: Booking = {
@@ -56,6 +57,12 @@ describe('CreateBookingUseCase', () => {
       const result = await useCase.execute(validInput);
 
       expect(result.status).toBe(BookingStatus.PENDING);
+    });
+
+    it('throws if court is inactive', async () => {
+      const useCase = new CreateBookingUseCase(makeRepository());
+      await expect(useCase.execute({ ...validInput, isCourtActive: false }))
+        .rejects.toThrow('não está disponível');
     });
 
     it('throws if date is missing', async () => {
