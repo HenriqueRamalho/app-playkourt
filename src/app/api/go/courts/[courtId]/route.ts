@@ -14,7 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ cou
     const venue = await venueRepository.findById(court.venueId);
     if (!venue) return NextResponse.json({ error: 'Venue not found' }, { status: 404 });
 
-    const courtWithSchedule = await courtRepository.findByIdWithSchedule(courtId, venue.businessHours);
+    const courtWithSchedule = await courtRepository.findByIdWithSchedule(courtId, venue.businessHours ?? []);
     if (!courtWithSchedule) return NextResponse.json({ error: 'Court not found' }, { status: 404 });
 
     return NextResponse.json({
