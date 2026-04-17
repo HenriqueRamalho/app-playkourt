@@ -13,6 +13,6 @@ export class CreateCourtUseCase {
   constructor(private courtRepository: CourtRepositoryInterface) {}
 
   async execute(input: CreateCourtInput): Promise<Court> {
-    return this.courtRepository.create({ ...input, isActive: true });
+    return this.courtRepository.create({ ...input, isActive: true, useVenueHours: true });
   }
 }

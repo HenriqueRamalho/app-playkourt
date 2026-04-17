@@ -56,11 +56,10 @@ describe('VenueEntity', () => {
       expect(venue.createdAt.getTime()).toBeLessThanOrEqual(after.getTime());
     });
 
-    it('defaults businessHours to DEFAULT_BUSINESS_HOURS', () => {
+    it('defaults businessHours to empty array', () => {
       const venue = new VenueEntity(validParams);
 
-      expect(venue.businessHours).toEqual(DEFAULT_BUSINESS_HOURS);
-      expect(venue.businessHours).toHaveLength(7);
+      expect(venue.businessHours).toEqual([]);
     });
 
     it('uses provided businessHours when given', () => {
@@ -70,8 +69,8 @@ describe('VenueEntity', () => {
       expect(venue.businessHours.every((h) => h.isClosed)).toBe(true);
     });
 
-    it('defaults sunday to closed', () => {
-      const venue = new VenueEntity(validParams);
+    it('defaults sunday to closed when DEFAULT_BUSINESS_HOURS provided', () => {
+      const venue = new VenueEntity({ ...validParams, businessHours: DEFAULT_BUSINESS_HOURS });
       const sunday = venue.businessHours.find((h) => h.dayOfWeek === 0);
 
       expect(sunday?.isClosed).toBe(true);

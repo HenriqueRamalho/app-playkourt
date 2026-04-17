@@ -1,7 +1,7 @@
 export interface BusinessHours {
   dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  openTime: string | null;  // "08:00"
-  closeTime: string | null; // "22:00"
+  openTime: string | null;
+  closeTime: string | null;
   isClosed: boolean;
 }
 
@@ -41,6 +41,6 @@ export interface Venue {
   latitude?: number;
   longitude?: number;
   isActive: boolean;
-  businessHours?: BusinessHours[];
+  businessHours?: BusinessHours[]; // carregado via venue_business_hours
   createdAt: Date;
 }

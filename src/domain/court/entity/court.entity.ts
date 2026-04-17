@@ -8,10 +8,11 @@ export class CourtEntity implements Court {
   description?: string;
   pricePerHour: number;
   isActive: boolean;
-  businessHours?: import('@/domain/venue/entity/venue.interface').BusinessHours[];
+  useVenueHours: boolean;
   createdAt: Date;
 
-  constructor(params: Omit<Court, 'id' | 'isActive' | 'createdAt'> & Partial<Pick<Court, 'id' | 'isActive' | 'createdAt'>>) {
+  constructor(params: Omit<Court, 'id' | 'isActive' | 'createdAt' | 'useVenueHours'>
+    & Partial<Pick<Court, 'id' | 'isActive' | 'createdAt' | 'useVenueHours'>>) {
     this.id = params.id ?? crypto.randomUUID();
     this.venueId = params.venueId;
     this.name = params.name;
@@ -19,7 +20,7 @@ export class CourtEntity implements Court {
     this.description = params.description;
     this.pricePerHour = params.pricePerHour;
     this.isActive = params.isActive ?? true;
-    this.businessHours = params.businessHours;
+    this.useVenueHours = params.useVenueHours ?? true;
     this.createdAt = params.createdAt ?? new Date();
 
     this.validate();

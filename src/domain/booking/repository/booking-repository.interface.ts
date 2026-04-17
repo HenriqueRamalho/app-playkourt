@@ -11,7 +11,7 @@ export interface PaginatedBookings {
 
 export interface BookingRepositoryInterface {
   create(booking: Omit<Booking, 'id' | 'createdAt'>): Promise<Booking>;
-  findByUserId(userId: string): Promise<BookingWithDetails[]>;
+  findByUserId(userId: string, page: number, pageSize: number): Promise<PaginatedBookings>;
   findByCourtId(courtId: string): Promise<Booking[]>;
   findActiveByCourtAndDate(courtId: string, date: string): Promise<Booking[]>;
   findByVenueId(venueId: string, page: number, pageSize: number): Promise<PaginatedBookings>;

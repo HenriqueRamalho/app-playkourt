@@ -1,11 +1,19 @@
 import { supabase } from '@/infrastructure/frontend-services/supabase';
-import { SportType } from '@/domain/court/entity/court.interface';
+import { SportType, CourtDateException, CourtRecurringBlock } from '@/domain/court/entity/court.interface';
+import { BusinessHours } from '@/domain/venue/entity/venue.interface';
 
 export interface CreateCourtDTO {
   name: string;
   sportType: SportType;
   description?: string;
   pricePerHour: number;
+}
+
+export interface CourtScheduleDTO {
+  useVenueHours: boolean;
+  businessHours: BusinessHours[];
+  dateExceptions: CourtDateException[];
+  recurringBlocks: CourtRecurringBlock[];
 }
 
 export interface CourtDTO {
@@ -16,7 +24,16 @@ export interface CourtDTO {
   description?: string;
   pricePerHour: number;
   isActive: boolean;
+  useVenueHours: boolean;
+  businessHours: BusinessHours[];
+  dateExceptions: CourtDateException[];
+  recurringBlocks: CourtRecurringBlock[];
   createdAt: string;
+}
+
+export interface UpdateScheduleResponseDTO {
+  court: CourtDTO;
+  affectedBookings: { date: string; count: number }[];
 }
 
 async function getAuthHeader(): Promise<string> {
@@ -82,6 +99,20 @@ export const courtService = {
     if (!res.ok) {
       const { error } = await res.json();
       throw new Error(error ?? 'Failed to create court');
+    }
+    return res.json();
+  },
+
+  async updateSchedule(venueId: string, courtId: string, dto: CourtScheduleDTO): Promise<UpdateScheduleResponseDTO> {
+    const authorization = await getAuthHeader();
+    const res = await fetch(`/api/venues/${venueId}/courts/${courtId}/schedule`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', authorization },
+      body: JSON.stringify(dto),
+    });
+    if (!res.ok) {
+      const { error } = await res.json();
+      throw new Error(error ?? 'Failed to update court schedule');
     }
     return res.json();
   },

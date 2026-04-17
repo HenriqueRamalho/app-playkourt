@@ -135,6 +135,9 @@ export default function AdminVenueDetailPage() {
                       <Link href={`/admin/venues/${venue.id}/court/${court.id}/edit`} className="text-sm font-medium text-gray-600 hover:text-gray-900">
                         Editar
                       </Link>
+                      <Link href={`/admin/venues/${venue.id}/court/${court.id}/schedule`} className="text-sm font-medium text-green-600 hover:text-green-700">
+                        Horários
+                      </Link>
                       <Link href={`/admin/venues/${venue.id}/court/${court.id}/delete`} className="text-sm font-medium text-red-500 hover:text-red-700">
                         Excluir
                       </Link>

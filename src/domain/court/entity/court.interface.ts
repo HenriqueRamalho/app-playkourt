@@ -1,5 +1,3 @@
-import { BusinessHours } from '@/domain/venue/entity/venue.interface';
-
 export enum SportType {
   VOLLEYBALL = 'volleyball',
   BEACH_VOLLEYBALL = 'beach_volleyball',
@@ -26,6 +24,23 @@ export const SPORT_TYPE_LABELS: Record<SportType, string> = {
   [SportType.OTHER]: 'Outro',
 };
 
+// Bloqueio pontual para uma data específica (ex: manutenção)
+export interface CourtDateException {
+  date: string;         // YYYY-MM-DD
+  isFullDayBlock: boolean;
+  startTime?: string;   // HH:MM
+  endTime?: string;     // HH:MM
+  reason?: string;
+}
+
+// Bloqueio recorrente por dia da semana (ex: contrato com escola)
+export interface CourtRecurringBlock {
+  dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  startTime: string;
+  endTime: string;
+  reason?: string;
+}
+
 export interface Court {
   id: string;
   venueId: string;
@@ -34,6 +49,13 @@ export interface Court {
   description?: string;
   pricePerHour: number;
   isActive: boolean;
-  businessHours?: BusinessHours[];
+  useVenueHours: boolean;
   createdAt: Date;
+}
+
+// Dados de scheduling carregados junto com a court pelo repositório
+export interface CourtWithSchedule extends Court {
+  businessHours: import('@/domain/venue/entity/venue.interface').BusinessHours[];
+  dateExceptions: CourtDateException[];
+  recurringBlocks: CourtRecurringBlock[];
 }

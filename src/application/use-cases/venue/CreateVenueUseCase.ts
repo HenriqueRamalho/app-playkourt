@@ -14,6 +14,7 @@ export interface CreateVenueInput {
   cityId: number;
   stateId: number;
   zipCode?: string;
+  businessHours?: import('@/domain/venue/entity/venue.interface').BusinessHours[];
 }
 
 export class CreateVenueUseCase {
@@ -23,6 +24,7 @@ export class CreateVenueUseCase {
     const venue = await this.venueRepository.create({
       ...input,
       isActive: true,
+      businessHours: input.businessHours ?? [],
     });
 
     await this.venueRepository.addMember(venue.id, input.ownerId, VenueMemberRole.OWNER);

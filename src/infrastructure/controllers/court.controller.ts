@@ -47,7 +47,9 @@ export class CourtController {
       const court = await courtRepository.findById(courtId);
       if (!court) return NextResponse.json({ error: 'Court not found' }, { status: 404 });
 
-      return NextResponse.json(court);
+      const schedule = await courtRepository.loadSchedule(courtId);
+
+      return NextResponse.json({ ...court, ...schedule });
     } catch (error) {
       console.error('Error fetching court:', JSON.stringify(error, null, 2));
       const message = error instanceof Error ? error.message : (error as { message?: string })?.message ?? 'Internal server error';

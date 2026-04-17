@@ -1,4 +1,4 @@
-import { Venue, BusinessHours, DEFAULT_BUSINESS_HOURS } from './venue.interface';
+import { Venue, BusinessHours } from './venue.interface';
 
 export class VenueEntity implements Venue {
   id: string;
@@ -41,7 +41,7 @@ export class VenueEntity implements Venue {
     this.latitude = params.latitude;
     this.longitude = params.longitude;
     this.isActive = params.isActive ?? true;
-    this.businessHours = params.businessHours ?? DEFAULT_BUSINESS_HOURS;
+    this.businessHours = params.businessHours ?? [];
     this.createdAt = params.createdAt ?? new Date();
 
     this.validate();

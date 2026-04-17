@@ -3,6 +3,7 @@ import { BookingRepositoryInterface } from '@/domain/booking/repository/booking-
 import { CourtSchedule } from '@/domain/court/value-object/CourtSchedule';
 import { BookingConflict } from '@/domain/booking/value-object/BookingConflict';
 import { BusinessHours } from '@/domain/venue/entity/venue.interface';
+import { CourtDateException, CourtRecurringBlock } from '@/domain/court/entity/court.interface';
 
 export interface CreateBookingInput {
   courtId: string;
@@ -11,6 +12,8 @@ export interface CreateBookingInput {
   startTime: string;
   durationHours: number;
   businessHours: BusinessHours[];
+  dateExceptions: CourtDateException[];
+  recurringBlocks: CourtRecurringBlock[];
   isCourtActive: boolean;
 }
 
@@ -23,7 +26,7 @@ export class CreateBookingUseCase {
     if (input.durationHours < 1 || input.durationHours > 4) throw new Error('Duration must be between 1 and 4 hours');
     if (!input.isCourtActive) throw new Error('Esta quadra não está disponível para reservas no momento.');
 
-    const schedule = new CourtSchedule(input.businessHours);
+    const schedule = new CourtSchedule(input.businessHours, input.dateExceptions, input.recurringBlocks);
 
     if (!schedule.isDateOpen(input.date)) {
       const reason = schedule.getClosedReason(input.date);
@@ -37,7 +40,7 @@ export class CreateBookingUseCase {
       );
     }
 
-    const { businessHours: _, isCourtActive: __, ...bookingData } = input;
+    const { businessHours: _, dateExceptions: __, recurringBlocks: ___, isCourtActive: ____, ...bookingData } = input;
 
     const existingBookings = await this.bookingRepository.findActiveByCourtAndDate(input.courtId, input.date);
     if (BookingConflict.hasConflict(existingBookings, input.startTime, input.durationHours)) {

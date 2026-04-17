@@ -116,8 +116,11 @@ export default function EditCourtPage() {
               </label>
             </div>
 
-            <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-700">
-              🕐 Esta quadra segue o horário de funcionamento do local. Personalizações por quadra estarão disponíveis em breve.
+            <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-700 flex items-center justify-between">
+              <span>🕐 Horário de funcionamento desta quadra</span>
+              <Link href={`/admin/venues/${venueId}/court/${courtId}/schedule`} className="font-medium underline hover:text-blue-900">
+                Configurar →
+              </Link>
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2">

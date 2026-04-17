@@ -14,14 +14,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ cou
     const venue = await venueRepository.findById(court.venueId);
     if (!venue) return NextResponse.json({ error: 'Venue not found' }, { status: 404 });
 
-    const businessHours = court.businessHours ?? venue.businessHours ?? [];
+    const courtWithSchedule = await courtRepository.findByIdWithSchedule(courtId, venue.businessHours);
+    if (!courtWithSchedule) return NextResponse.json({ error: 'Court not found' }, { status: 404 });
 
     return NextResponse.json({
-      ...court,
+      ...courtWithSchedule,
       venueName: venue.name,
       neighborhood: venue.neighborhood ?? '',
       cityName: venue.cityName,
-      businessHours,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Internal server error';

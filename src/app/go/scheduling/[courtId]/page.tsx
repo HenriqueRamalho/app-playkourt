@@ -38,10 +38,11 @@ export default function SchedulingPage() {
 
   if (authLoading || fetching) return null;
 
-  const schedule = court ? new CourtSchedule(court.businessHours) : null;
+  const schedule = court ? new CourtSchedule(court.businessHours, court.dateExceptions ?? [], court.recurringBlocks ?? []) : null;
   const closedReason = date && schedule ? schedule.getClosedReason(date) : null;
   const isDateOpen = date && schedule ? schedule.isDateOpen(date) : true;
   const availableSlots = date && schedule && isDateOpen ? schedule.getAvailableSlots(date, durationHours) : [];
+  const activeBlocks = date && schedule ? schedule.getBlocksForDate(date) : [];
 
   const handleDateChange = (newDate: string) => {
     setDate(newDate);
@@ -139,6 +140,16 @@ export default function SchedulingPage() {
             </select>
             {date && isDateOpen && availableSlots.length === 0 && (
               <p className="mt-2 text-sm text-gray-500">Nenhum horário disponível para {durationHours}h neste dia.</p>
+            )}
+            {date && isDateOpen && activeBlocks.filter(b => !b.type || b.type === 'recurring').length > 0 && (
+              <div className="mt-2 space-y-1">
+                {activeBlocks.map((block, i) => (
+                  <p key={i} className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
+                    ⚠️ Horário bloqueado das {block.startTime} às {block.endTime}
+                    {block.reason ? ` — ${block.reason}` : ''}
+                  </p>
+                ))}
+              </div>
             )}
           </div>
 

@@ -55,15 +55,24 @@ export class SupabaseBookingRepository implements BookingRepositoryInterface {
     return this.withDetails(data as Record<string, unknown>);
   }
 
-  async findByUserId(userId: string): Promise<BookingWithDetails[]> {
-    const { data, error } = await supabase
+  async findByUserId(userId: string, page: number, pageSize: number): Promise<PaginatedBookings> {
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await supabase
       .from('bookings')
-      .select('*, courts!court_id ( name, sport_type, venues!venue_id ( name ) )')
+      .select('*, courts!court_id ( name, sport_type, venues!venue_id ( name ) )', { count: 'exact' })
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
     if (error) throw error;
-    return data.map((d) => this.withDetails(d as Record<string, unknown>));
+    return {
+      data: data.map((d) => this.withDetails(d as Record<string, unknown>)),
+      total: count ?? 0,
+      page,
+      pageSize,
+    };
   }
 
   async findByCourtId(courtId: string): Promise<Booking[]> {

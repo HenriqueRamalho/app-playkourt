@@ -2,6 +2,7 @@ import { supabase } from '@/infrastructure/frontend-services/supabase';
 import { SportType } from '@/domain/court/entity/court.interface';
 import { BookingStatus } from '@/domain/booking/entity/booking.interface';
 import { BusinessHours } from '@/domain/venue/entity/venue.interface';
+import { CourtDateException, CourtRecurringBlock } from '@/domain/court/entity/court.interface';
 
 export interface CourtDetailDTO {
   id: string;
@@ -14,6 +15,20 @@ export interface CourtDetailDTO {
   neighborhood: string;
   cityName: string;
   businessHours: BusinessHours[];
+  dateExceptions: CourtDateException[];
+  recurringBlocks: CourtRecurringBlock[];
+}
+
+export interface AvailableCourtDTO {
+  courtId: string;
+  courtName: string;
+  sportType: SportType;
+  pricePerHour: number;
+  description?: string;
+  venueId: string;
+  venueName: string;
+  neighborhood: string;
+  cityName: string;
 }
 
 export interface VenueSearchResultDTO {
@@ -61,6 +76,13 @@ export interface BookingDTO {
   createdAt: string;
 }
 
+export interface PaginatedBookingsDTO {
+  data: BookingDTO[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 async function getAuthHeader(): Promise<string> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
@@ -68,6 +90,22 @@ async function getAuthHeader(): Promise<string> {
 }
 
 export const goService = {
+  async searchAvailable(params: { cityId: number; sportType: SportType; date: string; startTime: string; endTime: string }): Promise<AvailableCourtDTO[]> {
+    const query = new URLSearchParams({
+      cityId: String(params.cityId),
+      sportType: params.sportType,
+      date: params.date,
+      startTime: params.startTime,
+      endTime: params.endTime,
+    });
+    const res = await fetch(`/api/go/courts/available?${query}`);
+    if (!res.ok) {
+      const { error } = await res.json();
+      throw new Error(error ?? 'Failed to search available courts');
+    }
+    return res.json();
+  },
+
   async searchCourts(params: { cityId: number; neighborhood?: string; sportType?: SportType }): Promise<VenueSearchResultDTO[]> {
     const query = new URLSearchParams({ cityId: String(params.cityId) });
     if (params.neighborhood) query.set('neighborhood', params.neighborhood);
@@ -81,9 +119,10 @@ export const goService = {
     return res.json();
   },
 
-  async listMyBookings(): Promise<BookingDTO[]> {
+  async listMyBookings(page = 1, pageSize = 20): Promise<PaginatedBookingsDTO> {
     const authorization = await getAuthHeader();
-    const res = await fetch('/api/go/bookings', { headers: { authorization } });
+    const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+    const res = await fetch(`/api/go/bookings?${query}`, { headers: { authorization } });
     if (!res.ok) {
       const { error } = await res.json();
       throw new Error(error ?? 'Failed to list bookings');

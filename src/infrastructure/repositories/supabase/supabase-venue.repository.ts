@@ -1,5 +1,5 @@
 import { supabase } from '@/infrastructure/database/supabase/server/client';
-import { Venue } from '@/domain/venue/entity/venue.interface';
+import { Venue, BusinessHours } from '@/domain/venue/entity/venue.interface';
 import { VenueMember, VenueMemberRole } from '@/domain/venue/entity/venue-member.interface';
 import { VenueRepositoryInterface } from '@/domain/venue/repository/venue-repository.interface';
 import { VenueEntity } from '@/domain/venue/entity/venue.entity';
@@ -7,33 +7,15 @@ import { VenueEntity } from '@/domain/venue/entity/venue.entity';
 const VENUE_SELECT = `
   *,
   cities!city_id ( name ),
-  states!state_id ( name, uf )
+  states!state_id ( name, uf ),
+  venue_business_hours ( day_of_week, open_time, close_time, is_closed )
 `;
 
 export class SupabaseVenueRepository implements VenueRepositoryInterface {
-  private toDatabase(venue: Omit<Venue, 'id' | 'createdAt' | 'cityName' | 'stateName' | 'stateUf'>) {
-    return {
-      owner_id: venue.ownerId,
-      name: venue.name,
-      cnpj: venue.cnpj,
-      phone: venue.phone,
-      street: venue.street,
-      number: venue.number,
-      complement: venue.complement,
-      neighborhood: venue.neighborhood,
-      city_id: venue.cityId,
-      state_id: venue.stateId,
-      zip_code: venue.zipCode,
-      latitude: venue.latitude,
-      longitude: venue.longitude,
-      is_active: venue.isActive,
-      business_hours: venue.businessHours ?? [],
-    };
-  }
-
   private fromDatabase(data: Record<string, unknown>): Venue {
     const city = data.cities as { name: string } | null;
     const state = data.states as { name: string; uf: string } | null;
+    const hours = (data.venue_business_hours as Record<string, unknown>[] | null) ?? [];
 
     return new VenueEntity({
       id: data.id as string,
@@ -54,27 +36,50 @@ export class SupabaseVenueRepository implements VenueRepositoryInterface {
       latitude: data.latitude as number | undefined,
       longitude: data.longitude as number | undefined,
       isActive: data.is_active as boolean,
-      businessHours: (() => {
-        const raw = data.business_hours;
-        if (Array.isArray(raw)) return raw;
-        if (typeof raw === 'string') {
-          try { return JSON.parse(raw); } catch { return []; }
-        }
-        return [];
-      })(),
+      businessHours: hours.map((h) => ({
+        dayOfWeek: h.day_of_week as BusinessHours['dayOfWeek'],
+        openTime: h.open_time as string,
+        closeTime: h.close_time as string,
+        isClosed: h.is_closed as boolean,
+      })),
       createdAt: new Date(data.created_at as string),
     });
+  }
+
+  private async upsertBusinessHours(venueId: string, businessHours: BusinessHours[]): Promise<void> {
+    if (!businessHours.length) return;
+    const rows = businessHours.map((h) => ({
+      venue_id: venueId,
+      day_of_week: h.dayOfWeek,
+      open_time: h.openTime ?? '08:00',
+      close_time: h.closeTime ?? '22:00',
+      is_closed: h.isClosed,
+    }));
+    const { error } = await supabase
+      .from('venue_business_hours')
+      .upsert(rows, { onConflict: 'venue_id,day_of_week' });
+    if (error) throw error;
   }
 
   async create(venue: Omit<Venue, 'id' | 'createdAt' | 'cityName' | 'stateName' | 'stateUf'>): Promise<Venue> {
     const { data, error } = await supabase
       .from('venues')
-      .insert(this.toDatabase(venue))
+      .insert({
+        owner_id: venue.ownerId, name: venue.name, cnpj: venue.cnpj,
+        phone: venue.phone, street: venue.street, number: venue.number,
+        complement: venue.complement, neighborhood: venue.neighborhood,
+        city_id: venue.cityId, state_id: venue.stateId, zip_code: venue.zipCode,
+        latitude: venue.latitude, longitude: venue.longitude, is_active: venue.isActive,
+      })
       .select(VENUE_SELECT)
       .single();
 
     if (error) throw error;
-    return this.fromDatabase(data as Record<string, unknown>);
+    const created = this.fromDatabase(data as Record<string, unknown>);
+    await this.upsertBusinessHours(created.id, venue.businessHours ?? []);
+
+    // Recarrega com os horários persistidos
+    return (await this.findById(created.id))!;
   }
 
   async findById(id: string): Promise<Venue | null> {
@@ -84,8 +89,8 @@ export class SupabaseVenueRepository implements VenueRepositoryInterface {
       .eq('id', id)
       .single();
 
-    if (error) throw error;
-    return data ? this.fromDatabase(data as Record<string, unknown>) : null;
+    if (error) return null;
+    return this.fromDatabase(data as Record<string, unknown>);
   }
 
   async findByOwnerId(ownerId: string): Promise<Venue[]> {
@@ -112,13 +117,21 @@ export class SupabaseVenueRepository implements VenueRepositoryInterface {
   async update(id: string, venue: Partial<Omit<Venue, 'id' | 'ownerId' | 'createdAt' | 'cityName' | 'stateName' | 'stateUf'>>): Promise<Venue> {
     const { data, error } = await supabase
       .from('venues')
-      .update(this.toDatabase({ ...venue } as Omit<Venue, 'id' | 'createdAt' | 'cityName' | 'stateName' | 'stateUf'>))
+      .update({
+        name: venue.name, cnpj: venue.cnpj, phone: venue.phone,
+        street: venue.street, number: venue.number, complement: venue.complement,
+        neighborhood: venue.neighborhood, city_id: venue.cityId, state_id: venue.stateId,
+        zip_code: venue.zipCode, latitude: venue.latitude, longitude: venue.longitude,
+        is_active: venue.isActive,
+      })
       .eq('id', id)
       .select(VENUE_SELECT)
       .single();
 
     if (error) throw error;
-    return this.fromDatabase(data as Record<string, unknown>);
+    if (venue.businessHours) await this.upsertBusinessHours(id, venue.businessHours);
+
+    return (await this.findById(id))!;
   }
 
   async delete(id: string): Promise<void> {

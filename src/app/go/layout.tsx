@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { Search, CalendarDays, User } from 'lucide-react';
+import { Search, SlidersHorizontal, CalendarDays, User } from 'lucide-react';
 
 const navItems = [
   { href: '/go', label: 'Explorar', icon: Search },
+  { href: '/go/advanced-search', label: 'Busca avançada', icon: SlidersHorizontal },
   { href: '/go/reservations', label: 'Minhas reservas', icon: CalendarDays },
   { href: '/go/profile', label: 'Perfil', icon: User },
 ];

@@ -27,12 +27,16 @@ export class GoController {
     }
   }
 
-  static async listMyBookings(_req: NextRequest, user: { id: string; email: string }): Promise<NextResponse> {
+  static async listMyBookings(req: NextRequest, user: { id: string; email: string }): Promise<NextResponse> {
     try {
+      const { searchParams } = new URL(req.url);
+      const page = Math.max(1, Number(searchParams.get('page') ?? 1));
+      const pageSize = Math.min(50, Math.max(1, Number(searchParams.get('pageSize') ?? 20)));
+
       const bookingRepository = new SupabaseBookingRepository();
       const useCase = new ListUserBookingsUseCase(bookingRepository);
-      const bookings = await useCase.execute(user.id);
-      return NextResponse.json(bookings);
+      const result = await useCase.execute(user.id, page, pageSize);
+      return NextResponse.json(result);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Internal server error';
       return NextResponse.json({ error: message }, { status: 500 });
@@ -51,11 +55,19 @@ export class GoController {
       const venue = await venueRepository.findById(court.venueId);
       if (!venue) return NextResponse.json({ error: 'Venue not found' }, { status: 404 });
 
-      const businessHours = court.businessHours ?? venue.businessHours ?? [];
+      const courtWithSchedule = await courtRepository.findByIdWithSchedule(body.courtId, venue.businessHours ?? []);
+      if (!courtWithSchedule) return NextResponse.json({ error: 'Court not found' }, { status: 404 });
 
       const bookingRepository = new SupabaseBookingRepository();
       const useCase = new CreateBookingUseCase(bookingRepository);
-      const booking = await useCase.execute({ ...body, userId: user.id, businessHours, isCourtActive: court.isActive });
+      const booking = await useCase.execute({
+        ...body,
+        userId: user.id,
+        businessHours: courtWithSchedule.businessHours,
+        dateExceptions: courtWithSchedule.dateExceptions,
+        recurringBlocks: courtWithSchedule.recurringBlocks,
+        isCourtActive: courtWithSchedule.isActive,
+      });
       return NextResponse.json(booking, { status: 201 });
     } catch (error) {
       const isConflict = error instanceof Error &&
