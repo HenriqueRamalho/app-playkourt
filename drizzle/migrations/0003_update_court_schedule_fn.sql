@@ -1,3 +1,6 @@
+-- Atualiza atomicamente as tabelas de horário/bloqueios de uma court:
+-- deleta tudo e reinsere a partir dos arrays JSONB. Chamado por
+-- CourtRepository.updateSchedule.
 create or replace function update_court_schedule(
   p_court_id         uuid,
   p_business_hours   jsonb,

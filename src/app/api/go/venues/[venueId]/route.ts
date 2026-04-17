@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SupabaseVenueRepository } from '@/infrastructure/repositories/supabase/supabase-venue.repository';
-import { SupabaseCourtRepository } from '@/infrastructure/repositories/supabase/supabase-court.repository';
+import { DrizzleVenueRepository } from '@/infrastructure/repositories/drizzle/drizzle-venue.repository';
+import { DrizzleCourtRepository } from '@/infrastructure/repositories/drizzle/drizzle-court.repository';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ venueId: string }> }) {
   try {
     const { venueId } = await params;
-    const venueRepository = new SupabaseVenueRepository();
-    const courtRepository = new SupabaseCourtRepository();
+    const venueRepository = new DrizzleVenueRepository();
+    const courtRepository = new DrizzleCourtRepository();
 
     const venue = await venueRepository.findById(venueId);
     if (!venue) return NextResponse.json({ error: 'Venue not found' }, { status: 404 });

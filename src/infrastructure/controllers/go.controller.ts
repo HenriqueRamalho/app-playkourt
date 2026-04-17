@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SearchCourtsUseCase } from '@/application/use-cases/court/SearchCourtsUseCase';
 import { CreateBookingUseCase } from '@/application/use-cases/booking/CreateBookingUseCase';
 import { ListUserBookingsUseCase } from '@/application/use-cases/booking/ListUserBookingsUseCase';
-import { SupabaseCourtRepository } from '@/infrastructure/repositories/supabase/supabase-court.repository';
-import { SupabaseBookingRepository } from '@/infrastructure/repositories/supabase/supabase-booking.repository';
-import { SupabaseVenueRepository } from '@/infrastructure/repositories/supabase/supabase-venue.repository';
+import { DrizzleCourtRepository } from '@/infrastructure/repositories/drizzle/drizzle-court.repository';
+import { DrizzleBookingRepository } from '@/infrastructure/repositories/drizzle/drizzle-booking.repository';
+import { DrizzleVenueRepository } from '@/infrastructure/repositories/drizzle/drizzle-venue.repository';
 import { SportType } from '@/domain/court/entity/court.interface';
 
 export class GoController {
@@ -17,7 +17,7 @@ export class GoController {
 
       if (!cityId) return NextResponse.json({ error: 'cityId is required' }, { status: 400 });
 
-      const courtRepository = new SupabaseCourtRepository();
+      const courtRepository = new DrizzleCourtRepository();
       const useCase = new SearchCourtsUseCase(courtRepository);
       const courts = await useCase.execute({ cityId, neighborhood, sportType });
       return NextResponse.json(courts);
@@ -33,7 +33,7 @@ export class GoController {
       const page = Math.max(1, Number(searchParams.get('page') ?? 1));
       const pageSize = Math.min(50, Math.max(1, Number(searchParams.get('pageSize') ?? 20)));
 
-      const bookingRepository = new SupabaseBookingRepository();
+      const bookingRepository = new DrizzleBookingRepository();
       const useCase = new ListUserBookingsUseCase(bookingRepository);
       const result = await useCase.execute(user.id, page, pageSize);
       return NextResponse.json(result);
@@ -46,8 +46,8 @@ export class GoController {
   static async createBooking(req: NextRequest, user: { id: string; email: string }): Promise<NextResponse> {
     try {
       const body = await req.json();
-      const courtRepository = new SupabaseCourtRepository();
-      const venueRepository = new SupabaseVenueRepository();
+      const courtRepository = new DrizzleCourtRepository();
+      const venueRepository = new DrizzleVenueRepository();
 
       const court = await courtRepository.findById(body.courtId);
       if (!court) return NextResponse.json({ error: 'Court not found' }, { status: 404 });
@@ -58,7 +58,7 @@ export class GoController {
       const courtWithSchedule = await courtRepository.findByIdWithSchedule(body.courtId, venue.businessHours ?? []);
       if (!courtWithSchedule) return NextResponse.json({ error: 'Court not found' }, { status: 404 });
 
-      const bookingRepository = new SupabaseBookingRepository();
+      const bookingRepository = new DrizzleBookingRepository();
       const useCase = new CreateBookingUseCase(bookingRepository);
       const booking = await useCase.execute({
         ...body,

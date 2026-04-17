@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ListStatesUseCase } from '@/application/use-cases/location/ListStatesUseCase';
 import { ListCitiesByStateUseCase } from '@/application/use-cases/location/ListCitiesByStateUseCase';
-import { SupabaseLocationRepository } from '@/infrastructure/repositories/supabase/supabase-location.repository';
+import { DrizzleLocationRepository } from '@/infrastructure/repositories/drizzle/drizzle-location.repository';
 
 export class LocationController {
   static async listStates(_req: NextRequest): Promise<NextResponse> {
     try {
-      const repo = new SupabaseLocationRepository();
+      const repo = new DrizzleLocationRepository();
       const states = await new ListStatesUseCase(repo).execute();
       return NextResponse.json(states);
     } catch (error) {
@@ -17,7 +17,7 @@ export class LocationController {
 
   static async listCities(_req: NextRequest, stateId: number): Promise<NextResponse> {
     try {
-      const repo = new SupabaseLocationRepository();
+      const repo = new DrizzleLocationRepository();
       const cities = await new ListCitiesByStateUseCase(repo).execute(stateId);
       return NextResponse.json(cities);
     } catch (error) {

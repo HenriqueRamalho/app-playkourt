@@ -3,7 +3,7 @@ import { CreateCourtUseCase } from '@/application/use-cases/court/CreateCourtUse
 import { ListCourtsUseCase } from '@/application/use-cases/court/ListCourtsUseCase';
 import { UpdateCourtUseCase } from '@/application/use-cases/court/UpdateCourtUseCase';
 import { DeleteCourtUseCase } from '@/application/use-cases/court/DeleteCourtUseCase';
-import { SupabaseCourtRepository } from '@/infrastructure/repositories/supabase/supabase-court.repository';
+import { DrizzleCourtRepository } from '@/infrastructure/repositories/drizzle/drizzle-court.repository';
 import { VenueAccessService } from '@/infrastructure/services/venue-access.service';
 
 export class CourtController {
@@ -13,7 +13,7 @@ export class CourtController {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
       const body = await req.json();
-      const courtRepository = new SupabaseCourtRepository();
+      const courtRepository = new DrizzleCourtRepository();
       const court = await new CreateCourtUseCase(courtRepository).execute({ ...body, venueId });
       return NextResponse.json(court, { status: 201 });
     } catch (error) {
@@ -28,7 +28,7 @@ export class CourtController {
       if (!await VenueAccessService.hasAccess(user.id, venueId))
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-      const courtRepository = new SupabaseCourtRepository();
+      const courtRepository = new DrizzleCourtRepository();
       const courts = await new ListCourtsUseCase(courtRepository).execute(venueId);
       return NextResponse.json(courts);
     } catch (error) {
@@ -43,7 +43,7 @@ export class CourtController {
       if (!await VenueAccessService.hasAccess(user.id, venueId))
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-      const courtRepository = new SupabaseCourtRepository();
+      const courtRepository = new DrizzleCourtRepository();
       const court = await courtRepository.findById(courtId);
       if (!court) return NextResponse.json({ error: 'Court not found' }, { status: 404 });
 
@@ -63,7 +63,7 @@ export class CourtController {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
       const body = await req.json();
-      const courtRepository = new SupabaseCourtRepository();
+      const courtRepository = new DrizzleCourtRepository();
       const court = await new UpdateCourtUseCase(courtRepository).execute(courtId, body);
       return NextResponse.json(court);
     } catch (error) {
@@ -78,7 +78,7 @@ export class CourtController {
       if (!await VenueAccessService.hasAccess(user.id, venueId))
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-      const courtRepository = new SupabaseCourtRepository();
+      const courtRepository = new DrizzleCourtRepository();
       await new DeleteCourtUseCase(courtRepository).execute(courtId);
       return new NextResponse(null, { status: 204 });
     } catch (error) {

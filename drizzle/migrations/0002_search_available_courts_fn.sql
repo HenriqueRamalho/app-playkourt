@@ -1,5 +1,5 @@
--- Função de busca de quadras disponíveis.
--- Resolve herança venue→court, bloqueios pontuais, recorrentes e conflitos de reserva.
+-- Resolve herança venue→court, bloqueios pontuais, recorrentes e conflitos
+-- de reserva em uma única query parametrizada.
 create or replace function search_available_courts(
   p_city_id     int,
   p_sport_type  text,
@@ -9,15 +9,15 @@ create or replace function search_available_courts(
   p_end_time    time
 )
 returns table (
-  court_id      uuid,
-  court_name    text,
-  sport_type    text,
+  court_id       uuid,
+  court_name     text,
+  sport_type     text,
   price_per_hour numeric,
-  description   text,
-  venue_id      uuid,
-  venue_name    text,
-  neighborhood  text,
-  city_name     text
+  description    text,
+  venue_id       uuid,
+  venue_name     text,
+  neighborhood   text,
+  city_name      text
 )
 language sql stable as
 $$
@@ -54,12 +54,10 @@ $$
     and c.is_active    = true
     and v.is_active    = true
 
-    -- Horário de funcionamento cobre o intervalo solicitado
     and eff.is_closed  = false
     and eff.open_time  <= p_start_time
     and eff.close_time >= p_end_time
 
-    -- Sem bloqueio pontual total nesta data
     and not exists (
       select 1 from court_date_exceptions e
       where e.court_id    = c.id
@@ -67,7 +65,6 @@ $$
         and e.is_full_day = true
     )
 
-    -- Sem bloqueio pontual parcial que sobreponha o intervalo
     and not exists (
       select 1 from court_date_exceptions e
       where e.court_id    = c.id
@@ -77,7 +74,6 @@ $$
         and e.end_time    > p_start_time
     )
 
-    -- Sem bloqueio recorrente que sobreponha o intervalo
     and not exists (
       select 1 from court_recurring_blocks rb
       where rb.court_id    = c.id
@@ -86,7 +82,6 @@ $$
         and rb.end_time    > p_start_time
     )
 
-    -- Sem reserva ativa conflitante
     and not exists (
       select 1 from bookings b
       where b.court_id = c.id

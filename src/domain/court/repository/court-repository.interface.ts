@@ -41,6 +41,11 @@ export interface CourtRepositoryInterface {
   create(court: Omit<Court, 'id' | 'createdAt'>): Promise<Court>;
   findById(id: string): Promise<Court | null>;
   findByIdWithSchedule(id: string, venueBusinessHours: BusinessHours[]): Promise<CourtWithSchedule | null>;
+  loadSchedule(courtId: string): Promise<{
+    businessHours: BusinessHours[];
+    dateExceptions: CourtDateException[];
+    recurringBlocks: CourtRecurringBlock[];
+  }>;
   findByVenueId(venueId: string): Promise<Court[]>;
   update(id: string, court: Partial<Omit<Court, 'id' | 'venueId' | 'createdAt'>>): Promise<Court>;
   updateSchedule(courtId: string, businessHours: BusinessHours[], dateExceptions: CourtDateException[], recurringBlocks: CourtRecurringBlock[]): Promise<void>;

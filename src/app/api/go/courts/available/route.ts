@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SupabaseCourtRepository } from '@/infrastructure/repositories/supabase/supabase-court.repository';
+import { DrizzleCourtRepository } from '@/infrastructure/repositories/drizzle/drizzle-court.repository';
 import { SearchAvailableCourtsUseCase } from '@/application/use-cases/court/SearchAvailableCourtsUseCase';
 import { SportType } from '@/domain/court/entity/court.interface';
 
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const startTime = searchParams.get('startTime') ?? '';
     const endTime = searchParams.get('endTime') ?? '';
 
-    const courtRepository = new SupabaseCourtRepository();
+    const courtRepository = new DrizzleCourtRepository();
     const useCase = new SearchAvailableCourtsUseCase(courtRepository);
     const results = await useCase.execute({ cityId, sportType, date, startTime, endTime });
 

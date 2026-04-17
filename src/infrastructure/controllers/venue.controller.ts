@@ -3,14 +3,14 @@ import { CreateVenueUseCase } from '@/application/use-cases/venue/CreateVenueUse
 import { ListVenuesUseCase } from '@/application/use-cases/venue/ListVenuesUseCase';
 import { UpdateVenueUseCase } from '@/application/use-cases/venue/UpdateVenueUseCase';
 import { DeleteVenueUseCase } from '@/application/use-cases/venue/DeleteVenueUseCase';
-import { SupabaseVenueRepository } from '@/infrastructure/repositories/supabase/supabase-venue.repository';
+import { DrizzleVenueRepository } from '@/infrastructure/repositories/drizzle/drizzle-venue.repository';
 import { VenueAccessService } from '@/infrastructure/services/venue-access.service';
 
 export class VenueController {
   static async create(req: NextRequest, user: { id: string; email: string }): Promise<NextResponse> {
     try {
       const body = await req.json();
-      const venueRepository = new SupabaseVenueRepository();
+      const venueRepository = new DrizzleVenueRepository();
       const venue = await new CreateVenueUseCase(venueRepository).execute({ ...body, ownerId: user.id });
       return NextResponse.json(venue, { status: 201 });
     } catch (error) {
@@ -22,7 +22,7 @@ export class VenueController {
 
   static async list(_req: NextRequest, user: { id: string; email: string }): Promise<NextResponse> {
     try {
-      const venueRepository = new SupabaseVenueRepository();
+      const venueRepository = new DrizzleVenueRepository();
       const venues = await new ListVenuesUseCase(venueRepository).execute(user.id);
       return NextResponse.json(venues);
     } catch (error) {
@@ -37,7 +37,7 @@ export class VenueController {
       if (!await VenueAccessService.hasAccess(user.id, id))
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-      const venueRepository = new SupabaseVenueRepository();
+      const venueRepository = new DrizzleVenueRepository();
       const venue = await venueRepository.findById(id);
       if (!venue) return NextResponse.json({ error: 'Venue not found' }, { status: 404 });
 
@@ -55,7 +55,7 @@ export class VenueController {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
       const body = await req.json();
-      const venueRepository = new SupabaseVenueRepository();
+      const venueRepository = new DrizzleVenueRepository();
       const venue = await new UpdateVenueUseCase(venueRepository).execute(id, body);
       return NextResponse.json(venue);
     } catch (error) {
@@ -70,7 +70,7 @@ export class VenueController {
       if (!await VenueAccessService.hasAccess(user.id, id))
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-      const venueRepository = new SupabaseVenueRepository();
+      const venueRepository = new DrizzleVenueRepository();
       await new DeleteVenueUseCase(venueRepository).execute(id);
       return new NextResponse(null, { status: 204 });
     } catch (error) {

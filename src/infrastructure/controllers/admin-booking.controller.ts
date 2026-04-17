@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ListVenueBookingsUseCase } from '@/application/use-cases/booking/ListVenueBookingsUseCase';
 import { UpdateBookingStatusUseCase } from '@/application/use-cases/booking/UpdateBookingStatusUseCase';
-import { SupabaseBookingRepository } from '@/infrastructure/repositories/supabase/supabase-booking.repository';
+import { DrizzleBookingRepository } from '@/infrastructure/repositories/drizzle/drizzle-booking.repository';
 import { VenueAccessService } from '@/infrastructure/services/venue-access.service';
 import { BookingStatus } from '@/domain/booking/entity/booking.interface';
 
@@ -15,7 +15,7 @@ export class AdminBookingController {
       const page = Math.max(1, Number(searchParams.get('page') ?? 1));
       const pageSize = Math.min(50, Math.max(1, Number(searchParams.get('pageSize') ?? 20)));
 
-      const bookingRepository = new SupabaseBookingRepository();
+      const bookingRepository = new DrizzleBookingRepository();
       const result = await new ListVenueBookingsUseCase(bookingRepository).execute(venueId, page, pageSize);
       return NextResponse.json(result);
     } catch (error) {
@@ -29,7 +29,7 @@ export class AdminBookingController {
       if (!await VenueAccessService.hasAccess(user.id, venueId))
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-      const bookingRepository = new SupabaseBookingRepository();
+      const bookingRepository = new DrizzleBookingRepository();
       const booking = await bookingRepository.findById(bookingId);
       if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
 
@@ -49,7 +49,7 @@ export class AdminBookingController {
       if (!Object.values(BookingStatus).includes(status))
         return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
 
-      const bookingRepository = new SupabaseBookingRepository();
+      const bookingRepository = new DrizzleBookingRepository();
       const booking = await new UpdateBookingStatusUseCase(bookingRepository).execute(bookingId, status);
       return NextResponse.json(booking);
     } catch (error) {

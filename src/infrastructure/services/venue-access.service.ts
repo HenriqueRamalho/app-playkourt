@@ -1,18 +1,18 @@
 import { unstable_cache } from 'next/cache';
-import { supabase } from '@/infrastructure/database/supabase/server/client';
+import { eq } from 'drizzle-orm';
+import { getDb } from '@/infrastructure/database/drizzle/client';
+import { venueMembers } from '@/infrastructure/database/drizzle/schema';
 
 // Cache dos venue IDs que o usuário tem acesso, com TTL de 60 segundos.
 // Evita um SELECT em venue_members a cada request autenticada.
 const getCachedVenueIds = (userId: string) =>
   unstable_cache(
     async () => {
-      const { data, error } = await supabase
-        .from('venue_members')
-        .select('venue_id')
-        .eq('user_id', userId);
-
-      if (error) throw error;
-      return data.map((row: { venue_id: string }) => row.venue_id);
+      const rows = await getDb()
+        .select({ venueId: venueMembers.venueId })
+        .from(venueMembers)
+        .where(eq(venueMembers.userId, userId));
+      return rows.map((row) => row.venueId);
     },
     [`venue-access-${userId}`],
     { revalidate: 60 }

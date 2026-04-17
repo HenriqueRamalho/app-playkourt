@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/infrastructure/middlewares/auth.middleware';
 import { VenueAccessService } from '@/infrastructure/services/venue-access.service';
-import { SupabaseCourtRepository } from '@/infrastructure/repositories/supabase/supabase-court.repository';
-import { SupabaseBookingRepository } from '@/infrastructure/repositories/supabase/supabase-booking.repository';
+import { DrizzleCourtRepository } from '@/infrastructure/repositories/drizzle/drizzle-court.repository';
+import { DrizzleBookingRepository } from '@/infrastructure/repositories/drizzle/drizzle-booking.repository';
 
 type Params = Promise<{ id: string; courtId: string }>;
 
@@ -15,7 +15,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
 
     try {
       const body = await req.json();
-      const courtRepository = new SupabaseCourtRepository();
+      const courtRepository = new DrizzleCourtRepository();
 
       const court = await courtRepository.findById(courtId);
       if (!court) return NextResponse.json({ error: 'Court not found' }, { status: 404 });
@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
         .filter((e: { isFullDayBlock: boolean }) => e.isFullDayBlock)
         .map((e: { date: string }) => e.date);
 
-      const bookingRepository = new SupabaseBookingRepository();
+      const bookingRepository = new DrizzleBookingRepository();
       const affectedBookings: { date: string; count: number }[] = [];
       for (const date of fullBlockDates) {
         const bookings = await bookingRepository.findActiveByCourtAndDate(courtId, date);
