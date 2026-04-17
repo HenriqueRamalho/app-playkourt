@@ -33,12 +33,8 @@ export class CreateBookingUseCase {
       throw new Error(reason ?? 'Este dia não está disponível para reservas.');
     }
 
-    if (!schedule.isSlotAvailable(input.date, input.startTime, input.durationHours)) {
-      const hours = schedule.getHoursForDate(input.date);
-      throw new Error(
-        `Horário fora do período de funcionamento. Este local funciona das ${hours?.openTime} às ${hours?.closeTime}.`
-      );
-    }
+    const slotReason = schedule.getSlotUnavailableReason(input.date, input.startTime, input.durationHours);
+    if (slotReason) throw new Error(slotReason);
 
     const { businessHours: _, dateExceptions: __, recurringBlocks: ___, isCourtActive: ____, ...bookingData } = input;
 

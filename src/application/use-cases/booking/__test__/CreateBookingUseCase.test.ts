@@ -150,4 +150,24 @@ describe('CreateBookingUseCase', () => {
       await expect(useCase.execute(validInput)).resolves.toBeDefined();
     });
   });
+
+  describe('recurring block validation', () => {
+    it('throws with recurring block reason when slot is blocked', async () => {
+      const useCase = new CreateBookingUseCase(makeRepository());
+      await expect(useCase.execute({
+        ...validInput,
+        startTime: '08:00',
+        recurringBlocks: [{ dayOfWeek: 1, startTime: '07:00', endTime: '12:00', reason: 'Escola de vôlei' }],
+      })).rejects.toThrow('Escola de vôlei');
+    });
+
+    it('throws without reason when recurring block has no reason', async () => {
+      const useCase = new CreateBookingUseCase(makeRepository());
+      await expect(useCase.execute({
+        ...validInput,
+        startTime: '08:00',
+        recurringBlocks: [{ dayOfWeek: 1, startTime: '07:00', endTime: '12:00' }],
+      })).rejects.toThrow('bloqueado das 07:00 às 12:00');
+    });
+  });
 });

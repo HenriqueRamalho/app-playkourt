@@ -41,24 +41,32 @@ export class CourtSchedule {
   }
 
   isSlotAvailable(date: string, startTime: string, durationHours: number): boolean {
+    return this.getSlotUnavailableReason(date, startTime, durationHours) === null;
+  }
+
+  getSlotUnavailableReason(date: string, startTime: string, durationHours: number): string | null {
     const exception = this.getDateException(date);
-    if (exception?.isFullDayBlock) return false;
+    if (exception?.isFullDayBlock) return 'Quadra indisponível nesta data.';
 
     const hours = this.getHoursForDate(date);
-    if (!hours || hours.isClosed || !hours.openTime || !hours.closeTime) return false;
+    if (!hours || hours.isClosed || !hours.openTime || !hours.closeTime) return 'Quadra fechada neste dia.';
 
     const slotStart = this.toMinutes(startTime);
     const slotEnd = slotStart + durationHours * 60;
-    const open = this.toMinutes(hours.openTime);
-    const close = this.toMinutes(hours.closeTime);
+    const open = this.toMinutes(hours.openTime.slice(0, 5));
+    const close = this.toMinutes(hours.closeTime.slice(0, 5));
 
-    if (slotStart < open || slotEnd > close) return false;
+    if (slotStart < open || slotEnd > close)
+      return `Horário fora do período de funcionamento. Este local funciona das ${hours.openTime.slice(0, 5)} às ${hours.closeTime.slice(0, 5)}.`;
 
     // Verifica bloqueio pontual parcial
     if (exception && !exception.isFullDayBlock && exception.startTime && exception.endTime) {
       const blockStart = this.toMinutes(exception.startTime);
       const blockEnd = this.toMinutes(exception.endTime);
-      if (slotStart < blockEnd && slotEnd > blockStart) return false;
+      if (slotStart < blockEnd && slotEnd > blockStart)
+        return exception.reason
+          ? `Horário bloqueado: ${exception.reason} (${exception.startTime.slice(0, 5)}–${exception.endTime.slice(0, 5)}).`
+          : `Horário bloqueado das ${exception.startTime.slice(0, 5)} às ${exception.endTime.slice(0, 5)}.`;
     }
 
     // Verifica bloqueios recorrentes
@@ -66,10 +74,13 @@ export class CourtSchedule {
     for (const block of blocks) {
       const blockStart = this.toMinutes(block.startTime);
       const blockEnd = this.toMinutes(block.endTime);
-      if (slotStart < blockEnd && slotEnd > blockStart) return false;
+      if (slotStart < blockEnd && slotEnd > blockStart)
+        return block.reason
+          ? `Horário reservado: ${block.reason} (${block.startTime.slice(0, 5)}–${block.endTime.slice(0, 5)}).`
+          : `Horário bloqueado das ${block.startTime.slice(0, 5)} às ${block.endTime.slice(0, 5)}.`;
     }
 
-    return true;
+    return null;
   }
 
   getAvailableSlots(date: string, durationHours: number): string[] {
