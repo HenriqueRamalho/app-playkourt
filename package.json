@@ -11,7 +11,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "prepare": "husky"
+    "prepare": "husky",
+    "type-check": "npx tsc --noEmit"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.102.1",

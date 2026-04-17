@@ -34,6 +34,8 @@ const validInput = {
   startTime: '10:00',
   durationHours: 1,
   businessHours: makeBusinessHours(),
+  dateExceptions: [],
+  recurringBlocks: [],
   isCourtActive: true,
 };
 
