@@ -14,15 +14,11 @@ const globalForDrizzle = globalThis as unknown as {
 function createClient(): DrizzleClient {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    throw new Error(
-      'DATABASE_URL não configurado. Adicione a connection string do Postgres no .env.local. ' +
-      'No Supabase Dashboard: Settings → Database → Connection string.'
-    );
+    throw new Error('DATABASE_URL não configurado. Adicione a connection string do Postgres no .env.local.');
   }
 
-  // `prepare: false` é necessário ao usar Supavisor em modo transaction.
-  // Em conexão direta (modo dev-local) também é seguro e evita overhead
-  // de prepared statements para workloads com queries variadas.
+  // `prepare: false` evita overhead de prepared statements em workloads com
+  // queries variadas e é compatível com poolers em modo transaction.
   const sql = postgres(connectionString, { prepare: false });
   globalForDrizzle.__drizzleSql = sql;
   return drizzle(sql, { schema });

@@ -3,14 +3,14 @@ import { User } from './user.interface';
 export class UserEntity implements User {
   id: string;
   email: string;
-  name?: string;
+  name: string;
   createdAt: Date;
   lastLoginAt: Date;
 
   constructor(params: {
     id: string;
     email: string;
-    name?: string;
+    name: string;
     createdAt: Date;
     lastLoginAt: Date;
   }) {
@@ -29,6 +29,7 @@ export class UserEntity implements User {
   public isValid(): boolean {
     if (!this.id) throw new Error('Invalid id');
     if (!this.isValidEmail(this.email)) throw new Error('Invalid email');
+    if (!this.name || !this.name.trim()) throw new Error('Invalid name');
     return true;
   }
 }

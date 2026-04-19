@@ -1,4 +1,3 @@
-import { supabase } from '@/infrastructure/frontend-services/supabase';
 import { SportType, CourtDateException, CourtRecurringBlock } from '@/domain/court/entity/court.interface';
 import { BusinessHours } from '@/domain/venue/entity/venue.interface';
 
@@ -36,84 +35,57 @@ export interface UpdateScheduleResponseDTO {
   affectedBookings: { date: string; count: number }[];
 }
 
-async function getAuthHeader(): Promise<string> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
-  return `Bearer ${session.access_token}`;
+async function handle<T>(res: Response, fallback: string): Promise<T> {
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({ error: null }));
+    throw new Error(error ?? fallback);
+  }
+  return res.json() as Promise<T>;
 }
 
 export const courtService = {
   async getById(venueId: string, courtId: string): Promise<CourtDTO> {
-    const authorization = await getAuthHeader();
-    const res = await fetch(`/api/venues/${venueId}/courts/${courtId}`, { headers: { authorization } });
-    if (!res.ok) {
-      const { error } = await res.json();
-      throw new Error(error ?? 'Failed to fetch court');
-    }
-    return res.json();
+    const res = await fetch(`/api/venues/${venueId}/courts/${courtId}`);
+    return handle(res, 'Failed to fetch court');
   },
 
   async update(venueId: string, courtId: string, dto: Partial<CreateCourtDTO>): Promise<CourtDTO> {
-    const authorization = await getAuthHeader();
     const res = await fetch(`/api/venues/${venueId}/courts/${courtId}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', authorization },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dto),
     });
-    if (!res.ok) {
-      const { error } = await res.json();
-      throw new Error(error ?? 'Failed to update court');
-    }
-    return res.json();
+    return handle(res, 'Failed to update court');
   },
 
   async delete(venueId: string, courtId: string): Promise<void> {
-    const authorization = await getAuthHeader();
-    const res = await fetch(`/api/venues/${venueId}/courts/${courtId}`, {
-      method: 'DELETE',
-      headers: { authorization },
-    });
+    const res = await fetch(`/api/venues/${venueId}/courts/${courtId}`, { method: 'DELETE' });
     if (!res.ok) {
-      const { error } = await res.json();
+      const { error } = await res.json().catch(() => ({ error: null }));
       throw new Error(error ?? 'Failed to delete court');
     }
   },
 
   async listByVenue(venueId: string): Promise<CourtDTO[]> {
-    const authorization = await getAuthHeader();
-    const res = await fetch(`/api/venues/${venueId}/courts`, { headers: { authorization } });
-    if (!res.ok) {
-      const { error } = await res.json();
-      throw new Error(error ?? 'Failed to list courts');
-    }
-    return res.json();
+    const res = await fetch(`/api/venues/${venueId}/courts`);
+    return handle(res, 'Failed to list courts');
   },
 
   async create(venueId: string, dto: CreateCourtDTO): Promise<CourtDTO> {
-    const authorization = await getAuthHeader();
     const res = await fetch(`/api/venues/${venueId}/courts`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', authorization },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dto),
     });
-    if (!res.ok) {
-      const { error } = await res.json();
-      throw new Error(error ?? 'Failed to create court');
-    }
-    return res.json();
+    return handle(res, 'Failed to create court');
   },
 
   async updateSchedule(venueId: string, courtId: string, dto: CourtScheduleDTO): Promise<UpdateScheduleResponseDTO> {
-    const authorization = await getAuthHeader();
     const res = await fetch(`/api/venues/${venueId}/courts/${courtId}/schedule`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', authorization },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dto),
     });
-    if (!res.ok) {
-      const { error } = await res.json();
-      throw new Error(error ?? 'Failed to update court schedule');
-    }
-    return res.json();
+    return handle(res, 'Failed to update court schedule');
   },
 };

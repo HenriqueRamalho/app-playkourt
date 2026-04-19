@@ -16,7 +16,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { router.replace('/auth/login'); return; }
-    setName(user.user_metadata?.name ?? '');
+    setName(user.name ?? '');
   }, [user, authLoading, router]);
 
   if (authLoading) return null;

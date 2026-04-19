@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { UpdateUserNameUseCase } from '@/application/use-cases/user/UpdateUserNameUseCase';
-import { SupabaseUserRepository } from '@/infrastructure/repositories/supabase/supabase-user.repository';
+import { DrizzleUserRepository } from '@/infrastructure/repositories/drizzle/drizzle-user.repository';
 
 export class AccountController {
   static async updateProfile(req: NextRequest, user: { id: string; email: string }): Promise<NextResponse> {
     try {
       const { name } = await req.json();
-      const userRepository = new SupabaseUserRepository();
+      const userRepository = new DrizzleUserRepository();
       const useCase = new UpdateUserNameUseCase(userRepository);
       const updated = await useCase.execute(user.id, name);
       return NextResponse.json({ id: updated.id, email: updated.email, name: updated.name });

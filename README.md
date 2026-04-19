@@ -5,7 +5,7 @@ Plataforma de gestão para locação de quadras esportivas, construída com Next
 ## Pré-requisitos
 
 - Node.js 18+
-- Conta no [Supabase](https://supabase.com)
+- Banco Postgres (recomendado [Neon](https://neon.com) em produção; qualquer Postgres 14+ local funciona)
 
 ## Configuração
 
@@ -20,33 +20,33 @@ npm install
 Crie um arquivo `.env.local` na raiz do projeto:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+DATABASE_URL=postgresql://user:password@host/db?sslmode=require
+
+BETTER_AUTH_SECRET=<gere com: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">
+BETTER_AUTH_URL=https://localplaykourt.com:3000
+NEXT_PUBLIC_BETTER_AUTH_URL=https://localplaykourt.com:3000
+
+# Em produção, compartilha sessão entre admin./go./backoffice.<domain>
+# AUTH_COOKIE_DOMAIN=.playkourt.com
+
+# Opcional — habilita login com Google
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=
 ```
 
-### 3. Configure o banco de dados
-
-Execute as migrations disponíveis em `supabase/migrations/` no seu projeto Supabase:
+### 3. Aplique as migrations
 
 ```bash
-supabase db push
+npm run db:migrate
 ```
 
-### 5. Ative o Data API no Supabase ⚠️
+Para gerar novas migrations após alterar o schema Drizzle:
 
-Este projeto utiliza o cliente JavaScript do Supabase (`@supabase/supabase-js`) para consultar o banco de dados. Esse cliente depende do **Data API (PostgREST)**, que precisa estar habilitado no projeto.
+```bash
+npm run db:generate
+```
 
-Sem essa configuração, todas as queries retornarão erro silenciosamente ou falharão sem mensagem clara.
-
-**Como ativar:**
-
-1. Acesse o [Dashboard do Supabase](https://supabase.com/dashboard)
-2. Selecione o seu projeto
-3. Vá em **Settings → API**
-4. Na seção **Data API**, certifique-se de que a opção está **habilitada**
-5. Em **Exposed schemas**, confirme que o schema `public` está listado
-
-### 6. Inicie o servidor de desenvolvimento
+### 4. Inicie o servidor de desenvolvimento
 
 ```bash
 npm run dev
@@ -105,7 +105,8 @@ src/
 ├── app/                  # Rotas e páginas (Next.js App Router)
 │   ├── (main)/           # Rotas públicas com Navbar
 │   ├── api/              # API Routes
-│   ├── auth/             # Login, registro e callback OAuth
+│   │   └── auth/[...all] # Catch-all do Better Auth
+│   ├── auth/             # Login e registro
 │   ├── go/               # Área do jogador
 │   ├── admin/            # Área do gestor de venues
 │   ├── accounts/         # Gestão de dados pessoais
@@ -113,6 +114,8 @@ src/
 ├── application/          # Casos de uso
 ├── domain/               # Entidades e interfaces de repositório
 ├── infrastructure/       # Repositórios, controllers, serviços e middlewares
+│   ├── auth/             # Config do Better Auth (server + client)
+│   └── database/drizzle/ # Schema e client do Drizzle ORM
 └── components/           # Componentes compartilhados
 ```
 
@@ -121,5 +124,5 @@ src/
 - **Framework**: Next.js 16 (App Router)
 - **Linguagem**: TypeScript
 - **Estilização**: Tailwind CSS
-- **Banco de dados**: Supabase (PostgreSQL)
-- **Autenticação**: Supabase Auth
+- **Banco de dados**: Postgres (Neon) + Drizzle ORM
+- **Autenticação**: Better Auth

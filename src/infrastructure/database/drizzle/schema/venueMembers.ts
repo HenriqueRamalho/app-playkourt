@@ -1,12 +1,15 @@
 import { pgTable, uuid, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { venues } from './venues';
+import { user } from './auth';
 
 export const venueMembers = pgTable(
   'venue_members',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     venueId: uuid('venue_id').notNull().references(() => venues.id, { onDelete: 'cascade' }),
-    userId: uuid('user_id').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
     role: text('role').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { supabase } from '@/infrastructure/frontend-services/supabase';
+import { authClient } from '@/infrastructure/auth/better-auth.client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,27 +19,27 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword(formData);
-      if (error) throw error;
-      if (data.user) router.push('/');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao fazer login');
-    } finally {
-      setLoading(false);
+    const { data, error } = await authClient.signIn.email({
+      email: formData.email,
+      password: formData.password,
+    });
+    setLoading(false);
+    if (error) {
+      setError(error.message ?? 'Erro ao fazer login');
+      return;
+    }
+    if (data) {
+      router.push('/');
+      router.refresh();
     }
   };
 
   const handleGoogleSignIn = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
-      });
-      if (error) throw error;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao entrar com Google');
-    }
+    const { error } = await authClient.signIn.social({
+      provider: 'google',
+      callbackURL: '/',
+    });
+    if (error) setError(error.message ?? 'Erro ao entrar com Google');
   };
 
   return (

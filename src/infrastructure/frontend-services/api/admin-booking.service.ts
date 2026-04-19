@@ -1,4 +1,3 @@
-import { supabase } from '@/infrastructure/frontend-services/supabase';
 import { BookingStatus } from '@/domain/booking/entity/booking.interface';
 
 export interface AdminBookingDTO {
@@ -22,45 +21,32 @@ export interface PaginatedBookingsDTO {
   pageSize: number;
 }
 
-async function getAuthHeader(): Promise<string> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
-  return `Bearer ${session.access_token}`;
+async function handle<T>(res: Response, fallback: string): Promise<T> {
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({ error: null }));
+    throw new Error(error ?? fallback);
+  }
+  return res.json() as Promise<T>;
 }
 
 export const adminBookingService = {
   async list(venueId: string, page = 1, pageSize = 20): Promise<PaginatedBookingsDTO> {
-    const authorization = await getAuthHeader();
     const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-    const res = await fetch(`/api/admin/venues/${venueId}/reservations?${query}`, { headers: { authorization } });
-    if (!res.ok) {
-      const { error } = await res.json();
-      throw new Error(error ?? 'Failed to list reservations');
-    }
-    return res.json();
+    const res = await fetch(`/api/admin/venues/${venueId}/reservations?${query}`);
+    return handle(res, 'Failed to list reservations');
   },
 
   async getById(venueId: string, reservationId: string): Promise<AdminBookingDTO> {
-    const authorization = await getAuthHeader();
-    const res = await fetch(`/api/admin/venues/${venueId}/reservations/${reservationId}`, { headers: { authorization } });
-    if (!res.ok) {
-      const { error } = await res.json();
-      throw new Error(error ?? 'Failed to fetch reservation');
-    }
-    return res.json();
+    const res = await fetch(`/api/admin/venues/${venueId}/reservations/${reservationId}`);
+    return handle(res, 'Failed to fetch reservation');
   },
 
   async updateStatus(venueId: string, reservationId: string, status: BookingStatus): Promise<AdminBookingDTO> {
-    const authorization = await getAuthHeader();
     const res = await fetch(`/api/admin/venues/${venueId}/reservations/${reservationId}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', authorization },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     });
-    if (!res.ok) {
-      const { error } = await res.json();
-      throw new Error(error ?? 'Failed to update reservation');
-    }
-    return res.json();
+    return handle(res, 'Failed to update reservation');
   },
 };

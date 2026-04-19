@@ -1,12 +1,18 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext } from 'react';
 import { useRouter } from 'next/navigation';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '@/infrastructure/frontend-services/supabase';
+import { authClient, useSession } from '@/infrastructure/auth/better-auth.client';
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  image?: string | null;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -18,31 +24,26 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isPending } = useSession();
   const router = useRouter();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const user: AuthUser | null = data?.user
+    ? {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name,
+        image: data.user.image,
+      }
+    : null;
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await authClient.signOut();
     router.push('/auth/login');
+    router.refresh();
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading: isPending, signOut }}>
       {children}
     </AuthContext.Provider>
   );

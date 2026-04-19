@@ -1,10 +1,13 @@
 import { pgTable, uuid, text, integer, numeric, boolean, timestamp } from 'drizzle-orm/pg-core';
 import { cities } from './cities';
 import { states } from './states';
+import { user } from './auth';
 
 export const venues = pgTable('venues', {
   id: uuid('id').primaryKey().defaultRandom(),
-  ownerId: uuid('owner_id').notNull(),
+  ownerId: uuid('owner_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'restrict' }),
   name: text('name').notNull(),
   cnpj: text('cnpj'),
   phone: text('phone'),

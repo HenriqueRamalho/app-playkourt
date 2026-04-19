@@ -164,8 +164,7 @@ export class DrizzleBookingRepository implements BookingRepositoryInterface {
     const db = getDb();
     const offset = (page - 1) * pageSize;
 
-    // Join direto courts.venue_id → bookings.court_id, evitando a dupla query
-    // (courts → IN) da implementação Supabase.
+    // Join direto courts.venue_id → bookings.court_id, evitando dupla query.
     const [data, totalResult] = await Promise.all([
       db
         .select({

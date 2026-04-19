@@ -43,6 +43,13 @@
       "when": 1776467705398,
       "tag": "0005_seed_cities",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776470724665,
+      "tag": "0006_better_auth_tables",
+      "breakpoints": true
     }
   ]
 }

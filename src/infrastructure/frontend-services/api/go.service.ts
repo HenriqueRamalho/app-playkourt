@@ -1,4 +1,3 @@
-import { supabase } from '@/infrastructure/frontend-services/supabase';
 import { SportType } from '@/domain/court/entity/court.interface';
 import { BookingStatus } from '@/domain/booking/entity/booking.interface';
 import { BusinessHours } from '@/domain/venue/entity/venue.interface';
@@ -83,12 +82,6 @@ export interface PaginatedBookingsDTO {
   pageSize: number;
 }
 
-async function getAuthHeader(): Promise<string> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
-  return `Bearer ${session.access_token}`;
-}
-
 export const goService = {
   async searchAvailable(params: { cityId: number; sportType: SportType; date: string; startTime: string; endTime: string }): Promise<AvailableCourtDTO[]> {
     const query = new URLSearchParams({
@@ -120,9 +113,8 @@ export const goService = {
   },
 
   async listMyBookings(page = 1, pageSize = 20): Promise<PaginatedBookingsDTO> {
-    const authorization = await getAuthHeader();
     const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-    const res = await fetch(`/api/go/bookings?${query}`, { headers: { authorization } });
+    const res = await fetch(`/api/go/bookings?${query}`);
     if (!res.ok) {
       const { error } = await res.json();
       throw new Error(error ?? 'Failed to list bookings');
@@ -131,10 +123,9 @@ export const goService = {
   },
 
   async createBooking(input: { courtId: string; date: string; startTime: string; durationHours: number }): Promise<BookingDTO> {
-    const authorization = await getAuthHeader();
     const res = await fetch('/api/go/bookings', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', authorization },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
     });
     if (!res.ok) {

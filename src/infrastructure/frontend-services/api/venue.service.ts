@@ -1,4 +1,3 @@
-import { supabase } from '@/infrastructure/frontend-services/supabase';
 import { BusinessHours } from '@/domain/venue/entity/venue.interface';
 
 export interface CreateVenueDTO {
@@ -36,70 +35,48 @@ export interface VenueDTO {
   createdAt: string;
 }
 
-async function getAuthHeader(): Promise<string> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
-  return `Bearer ${session.access_token}`;
+async function handle<T>(res: Response, fallback: string): Promise<T> {
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({ error: null }));
+    throw new Error(error ?? fallback);
+  }
+  return res.json() as Promise<T>;
 }
 
 export const venueService = {
   async getById(id: string): Promise<VenueDTO> {
-    const authorization = await getAuthHeader();
-    const res = await fetch(`/api/venues/${id}`, { headers: { authorization } });
-    if (!res.ok) {
-      const { error } = await res.json();
-      throw new Error(error ?? 'Failed to fetch venue');
-    }
-    return res.json();
+    const res = await fetch(`/api/venues/${id}`);
+    return handle(res, 'Failed to fetch venue');
   },
 
   async list(): Promise<VenueDTO[]> {
-    const authorization = await getAuthHeader();
-    const res = await fetch('/api/venues', { headers: { authorization } });
-    if (!res.ok) {
-      const { error } = await res.json();
-      throw new Error(error ?? 'Failed to list venues');
-    }
-    return res.json();
+    const res = await fetch('/api/venues');
+    return handle(res, 'Failed to list venues');
   },
 
   async update(id: string, dto: Partial<CreateVenueDTO>): Promise<VenueDTO> {
-    const authorization = await getAuthHeader();
     const res = await fetch(`/api/venues/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', authorization },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dto),
     });
-    if (!res.ok) {
-      const { error } = await res.json();
-      throw new Error(error ?? 'Failed to update venue');
-    }
-    return res.json();
+    return handle(res, 'Failed to update venue');
   },
 
   async delete(id: string): Promise<void> {
-    const authorization = await getAuthHeader();
-    const res = await fetch(`/api/venues/${id}`, {
-      method: 'DELETE',
-      headers: { authorization },
-    });
+    const res = await fetch(`/api/venues/${id}`, { method: 'DELETE' });
     if (!res.ok) {
-      const { error } = await res.json();
+      const { error } = await res.json().catch(() => ({ error: null }));
       throw new Error(error ?? 'Failed to delete venue');
     }
   },
 
   async create(dto: CreateVenueDTO): Promise<VenueDTO> {
-    const authorization = await getAuthHeader();
     const res = await fetch('/api/venues', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', authorization },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dto),
     });
-    if (!res.ok) {
-      const { error } = await res.json();
-      throw new Error(error ?? 'Failed to create venue');
-    }
-    return res.json();
+    return handle(res, 'Failed to create venue');
   },
 };

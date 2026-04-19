@@ -12,12 +12,13 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "prepare": "husky",
-    "type-check": "npx tsc --noEmit"
+    "type-check": "npx tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.102.1",
+    "better-auth": "^1.6.5",
     "drizzle-orm": "^0.45.2",
-    "jose": "^6.2.2",
     "lucide-react": "^1.8.0",
     "next": "16.2.3",
     "postgres": "^3.4.9",
