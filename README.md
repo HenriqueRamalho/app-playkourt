@@ -26,7 +26,9 @@ BETTER_AUTH_SECRET=<gere com: node -e "console.log(require('crypto').randomBytes
 BETTER_AUTH_URL=https://localplaykourt.com:3000
 NEXT_PUBLIC_BETTER_AUTH_URL=https://localplaykourt.com:3000
 
-# Em produção, compartilha sessão entre admin./go./backoffice.<domain>
+# Opcional — se no futuro você servir o app em subdomínios (admin./go./backoffice.),
+# use para compartilhar o cookie de sessão entre eles. Com um único host e rotas
+# /admin, /go, /backoffice, em geral não é necessário.
 # AUTH_COOKIE_DOMAIN=.playkourt.com
 
 # Opcional — habilita login com Google

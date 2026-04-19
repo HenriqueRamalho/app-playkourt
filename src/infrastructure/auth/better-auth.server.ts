@@ -40,8 +40,9 @@ export const auth = betterAuth({
     database: {
       generateId: () => crypto.randomUUID(),
     },
-    // Em produção, o cookie é compartilhado entre admin./go./backoffice.<domain>
-    // via AUTH_COOKIE_DOMAIN=".domain.com". Em dev (localhost) ficamos sem.
+    // AUTH_COOKIE_DOMAIN (ex.: ".playkourt.com"): habilita cookie entre subdomínios
+    // quando/quando o deploy usar hosts irmãos; com um único domínio e rotas /admin,
+    // /go, /backoffice não é obrigatório. Em dev (localhost) normalmente fica vazio.
     ...(COOKIE_DOMAIN
       ? {
           crossSubDomainCookies: {

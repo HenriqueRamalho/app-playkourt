@@ -18,22 +18,21 @@ Usamos clean architecture, por isso a regra de negócio nunca depende do banco (
 - Better Auth com adapter Drizzle. Config em `src/infrastructure/auth/better-auth.server.ts`.
 - Handler catch-all em `src/app/api/auth/[...all]/route.ts`.
 - Cliente em `src/infrastructure/auth/better-auth.client.ts` (`authClient.signIn/signUp/useSession/...`).
-- Em produção, cookie de sessão compartilhado entre subdomínios via `AUTH_COOKIE_DOMAIN`.
+- Opcional: `AUTH_COOKIE_DOMAIN` (ex.: `.playkourt.com`) para **sessão compartilhada entre subdomínios** — útil se no futuro o deploy separar `admin.` / `go.` / `backoffice.` no mesmo site; com **um único host** e rotas `/admin`, `/go`, `/backoffice`, o cookie de sessão já cobre todo o domínio sem isso.
 - APIs internas leem sessão por cookie via `AuthService.getUserFromRequest(req)` — não use Bearer tokens.
 
 ## URLs de acesso
 
-### domain.com
-Onde será feito o marketing do aplicativo
+O produto é servido em **um mesmo domínio** com **prefixos de rota** (não usamos subdomínios `admin.` / `go.` / `backoffice.` no Next.js — isso complicava deploy e roteamento).
 
-### admin.domain.com
-Onde o dono da quadra acessa para administrar o negócio dele
+| Caminho | Uso |
+|---------|-----|
+| `/` | Marketing / landing |
+| `/admin` | Dono da quadra — venues, quadras, disponibilidade, preços |
+| `/go` | Cliente final — buscar quadras, reservar, pagar, gerenciar reservas |
+| `/backoffice` | Equipe interna — operação do app (ex.: listagem de usuários) |
 
-### go.domain.com
-Onde o cliente final interessado em reservar uma quadra acessa para gerenciar suas reservas (criando, pagando, editando etc).
-
-### backoffice.domain.com
-Onde eu e meu time acessamos para administrar o nosso app. É o nosso backoffice onde podemos fazer login na conta dos usuários, ver os últimos usuário cadastros, pesquisar por um usuário etc.
+Login e sessão usam as rotas `/auth/*` no mesmo host. Se no futuro houver subdomínios, `AUTH_COOKIE_DOMAIN` permite manter uma sessão compartilhada entre eles (ver seção Autenticação).
 
 
 ## entidades do sistema
