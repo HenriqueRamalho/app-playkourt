@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService, AuthUser } from '@/infrastructure/frontend-services/auth/auth.service';
 import { VenueAccessService } from '@/infrastructure/services/venue-access.service';
+import { BackofficeAccessService } from '@/infrastructure/services/backoffice-access.service';
 
 export async function withAuth(
   req: NextRequest,
@@ -19,6 +20,18 @@ export async function withVenueAccess(
   return withAuth(req, async (req, user) => {
     const hasAccess = await VenueAccessService.hasAccess(user.id, venueId);
     if (!hasAccess) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return handler(req, user);
+  });
+}
+
+export async function withBackofficeAccess(
+  req: NextRequest,
+  handler: (req: NextRequest, user: AuthUser) => Promise<NextResponse>,
+): Promise<NextResponse> {
+  return withAuth(req, async (req, user) => {
+    if (!BackofficeAccessService.hasAccess(user.email)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
     return handler(req, user);
   });
 }

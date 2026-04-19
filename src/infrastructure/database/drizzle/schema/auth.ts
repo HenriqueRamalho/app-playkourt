@@ -8,6 +8,10 @@ export const user = pgTable('user', {
   image: text('image'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  banned: boolean('banned').notNull().default(false),
+  banReason: text('ban_reason'),
+  banSource: text('ban_source'),
+  bannedAt: timestamp('banned_at', { withTimezone: true }),
 });
 
 export const session = pgTable('session', {

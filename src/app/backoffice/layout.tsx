@@ -1,5 +1,9 @@
 import Link from 'next/link';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { LayoutDashboard, Building2, CalendarDays, Users, BarChart2, Settings } from 'lucide-react';
+import { auth } from '@/infrastructure/auth/better-auth.server';
+import { BackofficeAccessService } from '@/infrastructure/services/backoffice-access.service';
 
 const navItems = [
   { href: '/backoffice', label: 'Dashboard', icon: LayoutDashboard },
@@ -10,7 +14,11 @@ const navItems = [
   { href: '/backoffice/settings', label: 'Configurações', icon: Settings },
 ];
 
-export default function BackofficeLayout({ children }: { children: React.ReactNode }) {
+export default async function BackofficeLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) redirect('/auth/login');
+  if (!BackofficeAccessService.hasAccess(session.user.email)) redirect('/');
+
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
       <aside className="w-56 bg-gray-900 flex flex-col shrink-0">
