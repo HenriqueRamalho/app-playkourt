@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 
 interface BackofficeUserDTO {
@@ -220,9 +221,21 @@ export default function BackofficeUsersPage() {
                 response?.data.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-mono text-xs text-gray-500" title={user.id}>
-                      {user.id.slice(0, 8)}…
+                      <Link
+                        href={`/backoffice/users/${user.id}`}
+                        className="text-green-700 hover:text-green-900 hover:underline"
+                      >
+                        {user.id.slice(0, 8)}…
+                      </Link>
                     </td>
-                    <td className="px-4 py-3 text-gray-900">{user.name}</td>
+                    <td className="px-4 py-3 text-gray-900">
+                      <Link
+                        href={`/backoffice/users/${user.id}`}
+                        className="hover:text-green-700 hover:underline"
+                      >
+                        {user.name}
+                      </Link>
+                    </td>
                     <td className="px-4 py-3 text-gray-700">
                       <div className="flex items-center gap-2">
                         <span>{user.email}</span>
