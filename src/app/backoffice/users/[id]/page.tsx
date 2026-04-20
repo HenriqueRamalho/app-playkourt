@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { use, useCallback, useEffect, useState } from 'react';
+import { BanUserModal } from './_components/BanUserModal';
 import { BookingsTab } from './_components/BookingsTab';
 import { OverviewTab } from './_components/OverviewTab';
 import { SessionsTab } from './_components/SessionsTab';
+import { UnbanUserModal } from './_components/UnbanUserModal';
 import { UserHeader } from './_components/UserHeader';
 import { VenuesTab } from './_components/VenuesTab';
 import type {
@@ -65,6 +67,10 @@ export default function BackofficeUserViewPage({
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessionsError, setSessionsError] = useState<string | null>(null);
   const [sessionsLoaded, setSessionsLoaded] = useState(false);
+
+  const [banModalOpen, setBanModalOpen] = useState(false);
+  const [unbanModalOpen, setUnbanModalOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   const fetchOverview = useCallback(async () => {
     setOverviewLoading(true);
@@ -196,6 +202,35 @@ export default function BackofficeUserViewPage({
     alert(ACTION_NOT_AVAILABLE_MSG);
   };
 
+  const showToast = (message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleBanClick = () => {
+    if (!overview) return;
+    if (overview.banned) setUnbanModalOpen(true);
+    else setBanModalOpen(true);
+  };
+
+  const handleBanSuccess = async ({ revokedSessions }: { revokedSessions: number }) => {
+    setBanModalOpen(false);
+    setSessionsLoaded(false);
+    setSessions(null);
+    await fetchOverview();
+    showToast(
+      revokedSessions > 0
+        ? `Usuário banido · ${revokedSessions} ${revokedSessions === 1 ? 'sessão revogada' : 'sessões revogadas'}.`
+        : 'Usuário banido.',
+    );
+  };
+
+  const handleUnbanSuccess = async () => {
+    setUnbanModalOpen(false);
+    await fetchOverview();
+    showToast('Usuário desbanido.');
+  };
+
   if (overviewLoading) {
     return <div className="text-gray-500 text-sm">Carregando usuário...</div>;
   }
@@ -235,7 +270,7 @@ export default function BackofficeUserViewPage({
       <UserHeader
         overview={overview}
         onOpenVenues={() => setActiveTab('venues')}
-        onActionBan={handleAction}
+        onActionBan={handleBanClick}
         onActionRevokeAll={handleAction}
         onActionImpersonate={handleAction}
         onActionResendVerification={handleAction}
@@ -286,6 +321,32 @@ export default function BackofficeUserViewPage({
           error={sessionsError}
           onRevoke={handleAction}
         />
+      )}
+
+      {banModalOpen && overview && (
+        <BanUserModal
+          userId={overview.id}
+          userName={overview.name}
+          userEmail={overview.email}
+          onClose={() => setBanModalOpen(false)}
+          onSuccess={handleBanSuccess}
+        />
+      )}
+
+      {unbanModalOpen && overview && (
+        <UnbanUserModal
+          userId={overview.id}
+          userName={overview.name}
+          userEmail={overview.email}
+          onClose={() => setUnbanModalOpen(false)}
+          onSuccess={handleUnbanSuccess}
+        />
+      )}
+
+      {toast && (
+        <div className="fixed bottom-6 right-6 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50">
+          {toast}
+        </div>
       )}
     </div>
   );

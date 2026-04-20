@@ -133,10 +133,36 @@ export interface BackofficeUserActiveSession {
   expiresAt: Date;
 }
 
+export interface BackofficeUserBanTarget {
+  id: string;
+  email: string;
+  banned: boolean;
+  banReason: string | null;
+  banSource: BanSource | null;
+  bannedAt: Date | null;
+}
+
+export interface BackofficeUserBanState {
+  id: string;
+  banned: boolean;
+  banReason: string | null;
+  banSource: BanSource | null;
+  bannedAt: Date | null;
+}
+
+export interface BanUserInput {
+  reason: string;
+  source: BanSource;
+}
+
 export interface BackofficeUserRepositoryInterface {
   list(criteria: ListBackofficeUsersCriteria): Promise<ListBackofficeUsersResult>;
   findOverviewById(userId: string): Promise<BackofficeUserOverview | null>;
   listVenues(userId: string): Promise<BackofficeUserVenues>;
   listBookings(criteria: ListBackofficeUserBookingsCriteria): Promise<ListBackofficeUserBookingsResult>;
   listActiveSessions(userId: string): Promise<BackofficeUserActiveSession[]>;
+  findBanTargetById(userId: string): Promise<BackofficeUserBanTarget | null>;
+  banUser(userId: string, input: BanUserInput): Promise<BackofficeUserBanState>;
+  unbanUser(userId: string): Promise<BackofficeUserBanState>;
+  deleteSessionsOfUser(userId: string): Promise<number>;
 }

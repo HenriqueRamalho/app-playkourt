@@ -11,12 +11,15 @@ import { BanSource } from '@/domain/user/entity/ban-source';
 import { BookingStatus } from '@/domain/booking/entity/booking.interface';
 import {
   BackofficeUserActiveSession,
+  BackofficeUserBanState,
+  BackofficeUserBanTarget,
   BackofficeUserBookingItem,
   BackofficeUserListItem,
   BackofficeUserOverview,
   BackofficeUserOverviewBooking,
   BackofficeUserRepositoryInterface,
   BackofficeUserVenues,
+  BanUserInput,
   ListBackofficeUserBookingsCriteria,
   ListBackofficeUserBookingsResult,
   ListBackofficeUsersCriteria,
@@ -312,6 +315,100 @@ export class DrizzleBackofficeUserRepository implements BackofficeUserRepository
       page: criteria.page,
       pageSize: criteria.pageSize,
     };
+  }
+
+  async findBanTargetById(userId: string): Promise<BackofficeUserBanTarget | null> {
+    const db = getDb();
+    const [row] = await db
+      .select({
+        id: user.id,
+        email: user.email,
+        banned: user.banned,
+        banReason: user.banReason,
+        banSource: user.banSource,
+        bannedAt: user.bannedAt,
+      })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+
+    if (!row) return null;
+    return {
+      id: row.id,
+      email: row.email,
+      banned: row.banned,
+      banReason: row.banReason ?? null,
+      banSource: this.parseBanSource(row.banSource),
+      bannedAt: row.bannedAt ?? null,
+    };
+  }
+
+  async banUser(userId: string, input: BanUserInput): Promise<BackofficeUserBanState> {
+    const db = getDb();
+    const now = new Date();
+    const [row] = await db
+      .update(user)
+      .set({
+        banned: true,
+        banReason: input.reason,
+        banSource: input.source,
+        bannedAt: now,
+        updatedAt: now,
+      })
+      .where(eq(user.id, userId))
+      .returning({
+        id: user.id,
+        banned: user.banned,
+        banReason: user.banReason,
+        banSource: user.banSource,
+        bannedAt: user.bannedAt,
+      });
+
+    return {
+      id: row.id,
+      banned: row.banned,
+      banReason: row.banReason ?? null,
+      banSource: this.parseBanSource(row.banSource),
+      bannedAt: row.bannedAt ?? null,
+    };
+  }
+
+  async unbanUser(userId: string): Promise<BackofficeUserBanState> {
+    const db = getDb();
+    const [row] = await db
+      .update(user)
+      .set({
+        banned: false,
+        banReason: null,
+        banSource: null,
+        bannedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(user.id, userId))
+      .returning({
+        id: user.id,
+        banned: user.banned,
+        banReason: user.banReason,
+        banSource: user.banSource,
+        bannedAt: user.bannedAt,
+      });
+
+    return {
+      id: row.id,
+      banned: row.banned,
+      banReason: row.banReason ?? null,
+      banSource: this.parseBanSource(row.banSource),
+      bannedAt: row.bannedAt ?? null,
+    };
+  }
+
+  async deleteSessionsOfUser(userId: string): Promise<number> {
+    const db = getDb();
+    const rows = await db
+      .delete(session)
+      .where(eq(session.userId, userId))
+      .returning({ id: session.id });
+    return rows.length;
   }
 
   async listActiveSessions(userId: string): Promise<BackofficeUserActiveSession[]> {

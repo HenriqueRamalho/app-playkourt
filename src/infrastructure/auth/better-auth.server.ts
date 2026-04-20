@@ -1,10 +1,15 @@
+import { eq } from 'drizzle-orm';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { APIError } from 'better-auth/api';
 import { nextCookies } from 'better-auth/next-js';
 import { getDb } from '@/infrastructure/database/drizzle/client';
 import { user, session, account, verification } from '@/infrastructure/database/drizzle/schema/auth';
 
 const COOKIE_DOMAIN = process.env.AUTH_COOKIE_DOMAIN;
+
+const BANNED_USER_MESSAGE =
+  'Não foi possível entrar. Se você acredita que isso é um erro, contate o suporte.';
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
@@ -55,6 +60,28 @@ export const auth = betterAuth({
           },
         }
       : {}),
+  },
+
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (sessionData) => {
+          const userId = sessionData.userId;
+          if (!userId) return;
+          const [row] = await getDb()
+            .select({ banned: user.banned })
+            .from(user)
+            .where(eq(user.id, userId))
+            .limit(1);
+          if (row?.banned) {
+            throw new APIError('FORBIDDEN', {
+              message: BANNED_USER_MESSAGE,
+              code: 'USER_BANNED',
+            });
+          }
+        },
+      },
+    },
   },
 
   plugins: [nextCookies()],

@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  BanUserFromBackofficeUseCase,
+  CannotBanSelfError,
+  CannotBanStaffError,
+  TargetUserNotFoundError,
+} from '@/application/use-cases/backoffice/BanUserFromBackofficeUseCase';
 import { GetBackofficeUserOverviewUseCase } from '@/application/use-cases/backoffice/GetBackofficeUserOverviewUseCase';
 import { ListBackofficeUserActiveSessionsUseCase } from '@/application/use-cases/backoffice/ListBackofficeUserActiveSessionsUseCase';
 import { ListBackofficeUserBookingsUseCase } from '@/application/use-cases/backoffice/ListBackofficeUserBookingsUseCase';
 import { ListBackofficeUserVenuesUseCase } from '@/application/use-cases/backoffice/ListBackofficeUserVenuesUseCase';
 import { ListUsersForBackofficeUseCase } from '@/application/use-cases/backoffice/ListUsersForBackofficeUseCase';
+import {
+  UnbanTargetNotFoundError,
+  UnbanUserFromBackofficeUseCase,
+} from '@/application/use-cases/backoffice/UnbanUserFromBackofficeUseCase';
+import { AuthUser } from '@/infrastructure/frontend-services/auth/auth.service';
 import { DrizzleBackofficeUserRepository } from '@/infrastructure/repositories/drizzle/drizzle-backoffice-user.repository';
+import { BackofficeAccessService } from '@/infrastructure/services/backoffice-access.service';
 
 const CLIENT_ERROR_PREFIXES = ['Invalid', 'Filter'];
 
@@ -179,6 +191,92 @@ export class BackofficeController {
     } catch (error) {
       return this.toErrorResponse(error);
     }
+  }
+
+  static async banUser(
+    req: NextRequest,
+    actor: AuthUser,
+    userId: string,
+  ): Promise<NextResponse> {
+    try {
+      const body = await this.readJsonBody(req);
+      const reason = typeof body?.reason === 'string' ? body.reason : '';
+
+      const repository = new DrizzleBackofficeUserRepository();
+      const useCase = new BanUserFromBackofficeUseCase(
+        repository,
+        (email: string) => BackofficeAccessService.hasAccess(email),
+      );
+
+      const result = await useCase.execute({
+        userId,
+        actorId: actor.id,
+        reason,
+      });
+
+      return NextResponse.json({
+        id: result.id,
+        banned: result.banned,
+        banReason: result.banReason,
+        banSource: result.banSource,
+        bannedAt: result.bannedAt.toISOString(),
+        revokedSessions: result.revokedSessions,
+      });
+    } catch (error) {
+      return this.toBanErrorResponse(error);
+    }
+  }
+
+  static async unbanUser(
+    _req: NextRequest,
+    actor: AuthUser,
+    userId: string,
+  ): Promise<NextResponse> {
+    try {
+      const repository = new DrizzleBackofficeUserRepository();
+      const useCase = new UnbanUserFromBackofficeUseCase(repository);
+
+      const result = await useCase.execute({
+        userId,
+        actorId: actor.id,
+      });
+
+      return NextResponse.json({
+        id: result.id,
+        banned: result.banned,
+        banReason: result.banReason,
+        banSource: result.banSource,
+        bannedAt: result.bannedAt,
+      });
+    } catch (error) {
+      return this.toBanErrorResponse(error);
+    }
+  }
+
+  private static async readJsonBody(req: NextRequest): Promise<Record<string, unknown> | null> {
+    try {
+      const text = await req.text();
+      if (!text) return null;
+      const parsed = JSON.parse(text);
+      return typeof parsed === 'object' && parsed !== null
+        ? (parsed as Record<string, unknown>)
+        : null;
+    } catch {
+      throw new Error('Invalid JSON body');
+    }
+  }
+
+  private static toBanErrorResponse(error: unknown): NextResponse {
+    if (error instanceof TargetUserNotFoundError || error instanceof UnbanTargetNotFoundError) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    if (error instanceof CannotBanStaffError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+    if (error instanceof CannotBanSelfError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+    return this.toErrorResponse(error);
   }
 
   private static parseOptionalInt(value: string | null): number | undefined {

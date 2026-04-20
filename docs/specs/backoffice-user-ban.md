@@ -259,7 +259,7 @@ Notas de design:
 
 ---
 
-## 9. Decisões fechadas (sob validação)
+## 9. Decisões fechadas
 
 - [x] **Superfície do ban:** modal (não página dedicada). Mantém o usuário no contexto da ficha.
 - [x] **Motivo obrigatório no ban:** sim, 10..500 chars, validado no cliente e no servidor.
