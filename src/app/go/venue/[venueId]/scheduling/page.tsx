@@ -1,114 +1,227 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { ArrowLeft, Clock, MapPin, Phone } from 'lucide-react';
+
 import { goService, VenueDetailDTO } from '@/infrastructure/frontend-services/api/go.service';
 import { SportType, SPORT_TYPE_LABELS } from '@/domain/court/entity/court.interface';
 import { DAY_OF_WEEK_LABELS } from '@/domain/venue/entity/venue.interface';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+
+type Filter = SportType | 'all';
+
 export default function VenueSchedulingPage() {
   const { venueId } = useParams<{ venueId: string }>();
-  const router = useRouter();
 
   const [detail, setDetail] = useState<VenueDetailDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sportFilter, setSportFilter] = useState<SportType | 'all'>('all');
+  const [sportFilter, setSportFilter] = useState<Filter>('all');
 
   useEffect(() => {
-    goService.getVenueWithCourts(venueId)
+    goService
+      .getVenueWithCourts(venueId)
       .then(setDetail)
-      .catch((err) => setError(err instanceof Error ? err.message : 'Erro ao carregar venue'))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Erro ao carregar o local'))
       .finally(() => setLoading(false));
   }, [venueId]);
 
-  if (loading) return null;
+  return (
+    <div className="mx-auto max-w-3xl">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mb-4 -ml-2.5 text-muted-foreground hover:text-foreground"
+        nativeButton={false}
+        render={<Link href="/go" />}
+      >
+        <ArrowLeft data-icon="inline-start" />
+        Voltar para busca
+      </Button>
 
-  const { venue, courts } = detail ?? { venue: null, courts: [] };
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTitle>Não foi possível carregar o local</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {loading ? (
+        <VenueSchedulingSkeleton />
+      ) : detail?.venue ? (
+        <VenueSchedulingContent
+          detail={detail}
+          filter={sportFilter}
+          onFilterChange={setSportFilter}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function VenueSchedulingContent({
+  detail,
+  filter,
+  onFilterChange,
+}: {
+  detail: VenueDetailDTO;
+  filter: Filter;
+  onFilterChange: (value: Filter) => void;
+}) {
+  const { venue, courts } = detail;
 
   const availableSports = [...new Set(courts.map((c) => c.sportType))];
-  const filtered = sportFilter === 'all' ? courts : courts.filter((c) => c.sportType === sportFilter);
+  const filtered = filter === 'all' ? courts : courts.filter((c) => c.sportType === filter);
 
-  const address = [venue?.street, venue?.number].filter(Boolean).join(', ');
-  const addressLine = [address, venue?.neighborhood, venue?.cityName, venue?.stateUf].filter(Boolean).join(' - ');
+  const streetLine = [venue.street, venue.number].filter(Boolean).join(', ');
+  const addressLine = [streetLine, venue.neighborhood, venue.cityName, venue.stateUf]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <Link href="/go" className="text-sm text-gray-500 hover:text-gray-700">← Voltar para busca</Link>
+    <>
+      <header className="mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight">{venue.name}</h1>
+        {addressLine && (
+          <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+            <MapPin className="size-3.5 shrink-0" />
+            <span>{addressLine}</span>
+          </p>
+        )}
+        {venue.phone && (
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Phone className="size-3.5 shrink-0" />
+            <span>{venue.phone}</span>
+          </p>
+        )}
+      </header>
 
-      {error && <div className="mt-6 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">{error}</div>}
-
-      {venue && (
-        <>
-          <div className="mt-6 mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">{venue.name}</h1>
-            {addressLine && <p className="mt-1 text-sm text-gray-500">{addressLine}</p>}
-            {venue.phone && <p className="mt-0.5 text-sm text-gray-500">{venue.phone}</p>}
-
-            {venue.businessHours?.length > 0 && (
-              <div className="mt-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Horário de funcionamento</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5">
-                  {venue.businessHours.map((h) => (
-                    <div key={h.dayOfWeek} className="flex items-center justify-start text-sm">
-                      <span className="text-gray-500 mr-2">{DAY_OF_WEEK_LABELS[h.dayOfWeek]}</span>
-                      {h.isClosed
-                        ? <span className="text-red-400 text-xs">Fechado</span>
-                        : <span className="text-gray-700 text-xs">{h.openTime} – {h.closeTime}</span>
-                      }
-                    </div>
-                  ))}
+      {venue.businessHours?.length > 0 && (
+        <Card size="sm" className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Clock className="size-3.5" />
+              Horário de funcionamento
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3">
+              {venue.businessHours.map((h) => (
+                <div key={h.dayOfWeek} className="flex items-center gap-2 text-sm">
+                  <dt className="w-10 text-muted-foreground">{DAY_OF_WEEK_LABELS[h.dayOfWeek]}</dt>
+                  <dd className="text-xs">
+                    {h.isClosed ? (
+                      <Badge variant="destructive">Fechado</Badge>
+                    ) : (
+                      <span className="text-foreground tabular-nums">
+                        {h.openTime} – {h.closeTime}
+                      </span>
+                    )}
+                  </dd>
                 </div>
-              </div>
-            )}
-          </div>
+              ))}
+            </dl>
+          </CardContent>
+        </Card>
+      )}
 
-          <div className="flex items-center gap-2 mb-5 flex-wrap">
-            <button
-              onClick={() => setSportFilter('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${sportFilter === 'all' ? 'bg-green-700 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-            >
-              Todas
-            </button>
-            {availableSports.map((sport) => (
-              <button
-                key={sport}
-                onClick={() => setSportFilter(sport)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${sportFilter === sport ? 'bg-green-700 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-              >
-                {SPORT_TYPE_LABELS[sport]}
-              </button>
-            ))}
-          </div>
+      {availableSports.length > 0 && (
+        <ToggleGroup
+          value={[filter]}
+          onValueChange={(values) => onFilterChange((values[0] as Filter) ?? 'all')}
+          variant="outline"
+          size="sm"
+          spacing={2}
+          className="mb-5 flex-wrap"
+          aria-label="Filtrar por modalidade"
+        >
+          <ToggleGroupItem value="all">Todas</ToggleGroupItem>
+          {availableSports.map((sport) => (
+            <ToggleGroupItem key={sport} value={sport}>
+              {SPORT_TYPE_LABELS[sport]}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      )}
 
-          {filtered.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-12 flex flex-col items-center text-center">
-              <span className="text-4xl mb-3">🏟️</span>
-              <p className="text-gray-500 text-sm">Nenhuma quadra disponível para esta modalidade.</p>
-            </div>
-          ) : (
-            <ul className="space-y-3">
-              {filtered.map((court) => (
-                <li key={court.id} className="bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between gap-4">
-                  <div className="flex flex-col gap-1">
-                    <span className="font-semibold text-gray-900 text-sm">{court.name}</span>
-                    <span className="text-xs text-green-700 font-medium">{SPORT_TYPE_LABELS[court.sportType]}</span>
-                    {court.description && <span className="text-xs text-gray-400">{court.description}</span>}
-                    <span className="text-xs text-gray-500">R$ {court.pricePerHour.toFixed(2)}/h</span>
+      {filtered.length === 0 ? (
+        <Card className="py-10">
+          <CardContent className="flex flex-col items-center gap-3 text-center">
+            <span className="text-4xl" aria-hidden>
+              🏟️
+            </span>
+            <p className="text-sm text-muted-foreground">
+              Nenhuma quadra disponível para esta modalidade.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <ul className="space-y-3">
+          {filtered.map((court) => (
+            <li key={court.id}>
+              <Card size="sm">
+                <CardContent className="flex items-center justify-between gap-4">
+                  <div className="min-w-0 space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="truncate text-sm font-semibold">{court.name}</span>
+                      <Badge variant="secondary">{SPORT_TYPE_LABELS[court.sportType]}</Badge>
+                    </div>
+                    {court.description && (
+                      <p className="line-clamp-1 text-xs text-muted-foreground">
+                        {court.description}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground tabular-nums">
+                        R$ {court.pricePerHour.toFixed(2)}
+                      </span>
+                      <span> /h</span>
+                    </p>
                   </div>
-                  <button
-                    onClick={() => router.push(`/go/scheduling/${court.id}`)}
-                    className="shrink-0 px-4 py-2 bg-green-700 text-white text-xs font-medium rounded-lg hover:bg-green-600 transition-colors"
+                  <Button
+                    size="sm"
+                    nativeButton={false}
+                    render={<Link href={`/go/scheduling/${court.id}`} />}
                   >
                     Reservar
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
+                  </Button>
+                </CardContent>
+              </Card>
+            </li>
+          ))}
+        </ul>
       )}
+    </>
+  );
+}
+
+function VenueSchedulingSkeleton() {
+  return (
+    <div aria-busy="true" aria-live="polite">
+      <div className="mb-8">
+        <Skeleton className="h-7 w-2/3" />
+        <Skeleton className="mt-2 h-4 w-1/2" />
+        <Skeleton className="mt-1.5 h-4 w-1/3" />
+      </div>
+      <Skeleton className="mb-8 h-28 w-full rounded-xl" />
+      <div className="mb-5 flex gap-2">
+        <Skeleton className="h-7 w-16 rounded-lg" />
+        <Skeleton className="h-7 w-20 rounded-lg" />
+        <Skeleton className="h-7 w-20 rounded-lg" />
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 w-full rounded-xl" />
+        ))}
+      </div>
     </div>
   );
 }
