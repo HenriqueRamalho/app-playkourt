@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ListVenueBookingsUseCase } from '@/application/use-cases/booking/ListVenueBookingsUseCase';
 import { UpdateBookingStatusUseCase } from '@/application/use-cases/booking/UpdateBookingStatusUseCase';
 import { DrizzleBookingRepository } from '@/infrastructure/repositories/drizzle/drizzle-booking.repository';
+import { DrizzleUserRepository } from '@/infrastructure/repositories/drizzle/drizzle-user.repository';
+import { getEmailSender } from '@/infrastructure/services/email/email-container';
 import { VenueAccessService } from '@/infrastructure/services/venue-access.service';
 import { BookingStatus } from '@/domain/booking/entity/booking.interface';
 
@@ -50,7 +52,11 @@ export class AdminBookingController {
         return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
 
       const bookingRepository = new DrizzleBookingRepository();
-      const booking = await new UpdateBookingStatusUseCase(bookingRepository).execute(bookingId, status);
+      const booking = await new UpdateBookingStatusUseCase(
+        bookingRepository,
+        getEmailSender(),
+        new DrizzleUserRepository(),
+      ).execute(bookingId, status);
       return NextResponse.json(booking);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Internal server error';
