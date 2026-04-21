@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { LayoutDashboard, Building2, CalendarDays, Users, BarChart2, Settings } from 'lucide-react';
+import { LayoutDashboard, Building2, CalendarDays, Users, Mail, BarChart2, Settings } from 'lucide-react';
 import { auth } from '@/infrastructure/auth/better-auth.server';
 import { BackofficeAccessService } from '@/infrastructure/services/backoffice-access.service';
 
@@ -10,6 +10,7 @@ const navItems = [
   { href: '/backoffice/venues', label: 'Venues', icon: Building2 },
   { href: '/backoffice/reservations', label: 'Reservas', icon: CalendarDays },
   { href: '/backoffice/users', label: 'Usuários', icon: Users },
+  { href: '/backoffice/emails', label: 'Emails', icon: Mail },
   { href: '/backoffice/reports', label: 'Relatórios', icon: BarChart2 },
   { href: '/backoffice/settings', label: 'Configurações', icon: Settings },
 ];

@@ -14,10 +14,13 @@
     "prepare": "husky",
     "type-check": "npx tsc --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx scripts/migrate.ts"
+    "db:migrate": "tsx scripts/migrate.ts",
+    "email:dev": "npx email dev -d src/infrastructure/services/email/react-email/templates -p 3001"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.7",
     "better-auth": "^1.6.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -33,6 +36,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^10.4.0",
+    "@react-email/ui": "^6.0.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -47,6 +51,7 @@
     "husky": "^9.1.7",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
+    "react-email": "^6.0.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5"

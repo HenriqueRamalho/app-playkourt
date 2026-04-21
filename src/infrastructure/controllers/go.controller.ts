@@ -5,6 +5,8 @@ import { ListUserBookingsUseCase } from '@/application/use-cases/booking/ListUse
 import { DrizzleCourtRepository } from '@/infrastructure/repositories/drizzle/drizzle-court.repository';
 import { DrizzleBookingRepository } from '@/infrastructure/repositories/drizzle/drizzle-booking.repository';
 import { DrizzleVenueRepository } from '@/infrastructure/repositories/drizzle/drizzle-venue.repository';
+import { DrizzleUserRepository } from '@/infrastructure/repositories/drizzle/drizzle-user.repository';
+import { getEmailSender } from '@/infrastructure/services/email/email-container';
 import { SportType } from '@/domain/court/entity/court.interface';
 
 export class GoController {
@@ -27,7 +29,10 @@ export class GoController {
     }
   }
 
-  static async listMyBookings(req: NextRequest, user: { id: string; email: string }): Promise<NextResponse> {
+  static async listMyBookings(
+    req: NextRequest,
+    user: { id: string; email: string; name: string },
+  ): Promise<NextResponse> {
     try {
       const { searchParams } = new URL(req.url);
       const page = Math.max(1, Number(searchParams.get('page') ?? 1));
@@ -43,7 +48,10 @@ export class GoController {
     }
   }
 
-  static async createBooking(req: NextRequest, user: { id: string; email: string }): Promise<NextResponse> {
+  static async createBooking(
+    req: NextRequest,
+    user: { id: string; email: string; name: string },
+  ): Promise<NextResponse> {
     try {
       const body = await req.json();
       const courtRepository = new DrizzleCourtRepository();
@@ -54,15 +62,23 @@ export class GoController {
 
       const venue = await venueRepository.findById(court.venueId);
       if (!venue) return NextResponse.json({ error: 'Venue not found' }, { status: 404 });
+      const userRepository = new DrizzleUserRepository();
+      const ownerUser = await userRepository.findById(venue.ownerId);
 
       const courtWithSchedule = await courtRepository.findByIdWithSchedule(body.courtId, venue.businessHours ?? []);
       if (!courtWithSchedule) return NextResponse.json({ error: 'Court not found' }, { status: 404 });
 
       const bookingRepository = new DrizzleBookingRepository();
-      const useCase = new CreateBookingUseCase(bookingRepository);
+      const useCase = new CreateBookingUseCase(bookingRepository, getEmailSender());
       const booking = await useCase.execute({
         ...body,
         userId: user.id,
+        userEmail: user.email,
+        userName: user.name,
+        ownerEmail: ownerUser?.email,
+        ownerName: ownerUser?.name,
+        courtName: courtWithSchedule.name,
+        venueName: venue.name,
         businessHours: courtWithSchedule.businessHours,
         dateExceptions: courtWithSchedule.dateExceptions,
         recurringBlocks: courtWithSchedule.recurringBlocks,

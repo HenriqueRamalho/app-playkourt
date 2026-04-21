@@ -36,19 +36,53 @@ NEXT_PUBLIC_BETTER_AUTH_URL=https://localplaykourt.com:3000
 # GOOGLE_CLIENT_SECRET=
 ```
 
-### 3. Aplique as migrations
+### 3. Primeira carga do banco (aplicar migrations existentes)
+
+O projeto usa **Drizzle ORM** com migrations versionadas em `drizzle/migrations/`. O script `db:migrate` roda `scripts/migrate.ts`, que aplica **apenas** o que ainda não consta em `drizzle.__drizzle_migrations` no Postgres apontado por `DATABASE_URL`.
 
 ```bash
 npm run db:migrate
 ```
 
-Para gerar novas migrations após alterar o schema Drizzle:
+Para apontar para outro banco (ex.: Neon de staging) sem alterar o `.env.local`:
 
 ```bash
-npm run db:generate
+DATABASE_URL="postgresql://..." npm run db:migrate
 ```
 
-### 4. Inicie o servidor de desenvolvimento
+### 4. Fluxo para **atualizar** o banco (schema → migration → banco)
+
+Alterações de schema devem nascer do **TypeScript** em `src/infrastructure/database/drizzle/schema/`, e o Drizzle gera o SQL e mantém o histórico em `drizzle/migrations/meta/` (`_journal.json` + `*_snapshot.json`). **Não** crie só um arquivo `.sql` manual na pasta de migrations sem esse meta — o `generate` e o `migrate` ficam inconsistentes.
+
+1. **Edite** as tabelas/colunas/índices no schema Drizzle (`src/infrastructure/database/drizzle/schema/`).
+2. **Gere** a migration a partir do diff entre o schema atual e o último snapshot:
+
+   ```bash
+   npm run db:generate
+   ```
+
+   (equivale a `drizzle-kit generate` usando `drizzle.config.ts`, que lê `.env.local` para credenciais quando necessário.)
+
+3. **Revise** o arquivo novo em `drizzle/migrations/` (nome tipo `0009_nome_descritivo.sql`) e confira se o SQL reflete o que você quer (especialmente drops e dados sensíveis).
+4. **Aplique** no banco:
+
+   ```bash
+   npm run db:migrate
+   ```
+
+Se o `generate` responder que não há mudanças, o schema TypeScript já está alinhado com o último snapshot em `drizzle/migrations/meta/`.
+
+**Arquivos importantes**
+
+| Caminho | Função |
+|---------|--------|
+| `drizzle.config.ts` | Onde o Drizzle encontra o schema (`schema`) e onde grava migrations (`out`) |
+| `drizzle/migrations/*.sql` | SQL executado na ordem do journal |
+| `drizzle/migrations/meta/_journal.json` | Lista ordenada das migrations conhecidas pelo kit |
+| `drizzle/migrations/meta/*_snapshot.json` | Estado do schema após cada migration — base do próximo `generate` |
+| `scripts/migrate.ts` | Aplica migrations na pasta `drizzle/migrations` via `DATABASE_URL` |
+
+### 5. Inicie o servidor de desenvolvimento
 
 ```bash
 npm run dev
@@ -57,6 +91,22 @@ npm run dev
 Acesse [https://localplaykourt.com:3000](https://localplaykourt.com:3000).
 
 > Para HTTPS local com domínio customizado, o projeto usa `mkcert`. Veja a seção **Local HTTPS** abaixo.
+
+## Emails (React Email)
+
+Templates transacionais em **React** são gerados com [`@react-email/render`](https://react.email/docs/utilities/render) e componentes de [`@react-email/components`](https://react.email/docs/components/html).
+
+- **Templates**: `src/infrastructure/services/email/react-email/templates/` (cada arquivo exporta um componente; use `export default` para o preview).
+- **Layout compartilhado**: `src/infrastructure/services/email/react-email/email-layout.tsx`
+- **Render para o caso de uso**: `src/infrastructure/services/email/react-email/render-booking-emails.tsx` (chama `render()` e devolve `html` + `text` em plain text).
+
+Para abrir o **preview** local (porta **3001**, para não conflitar com o Next em 3000). O pacote `react-email` expõe o CLI como o comando **`email`** (não `react-email`):
+
+```bash
+npm run email:dev
+```
+
+Para configurar as variáveis de ambiente para envio de email verifique o arquivo `docs/specs/backoffice-processed-emails.md`. A ideia inicial é usar resend e posteriormente migrar para SES da Aws.
 
 ## Local HTTPS (mkcert)
 
@@ -117,7 +167,8 @@ src/
 ├── domain/               # Entidades e interfaces de repositório
 ├── infrastructure/       # Repositórios, controllers, serviços e middlewares
 │   ├── auth/             # Config do Better Auth (server + client)
-│   └── database/drizzle/ # Schema e client do Drizzle ORM
+│   ├── database/drizzle/ # Schema e client do Drizzle ORM
+│   └── services/email/   # Envio de email + templates React Email (`react-email/`)
 └── components/           # Componentes compartilhados
 ```
 
@@ -128,3 +179,4 @@ src/
 - **Estilização**: Tailwind CSS
 - **Banco de dados**: Postgres (Neon) + Drizzle ORM
 - **Autenticação**: Better Auth
+- **Emails transacionais**: React Email (`@react-email/components` + `@react-email/render`)
