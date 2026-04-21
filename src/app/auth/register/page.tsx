@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authClient } from '@/infrastructure/auth/better-auth.client';
+import { generateFakeRegisterForm } from './register-fake-data';
+
+type PageState = 'form' | 'awaiting-verification';
 
 export default function RegisterPage() {
-  const router = useRouter();
+  const [pageState, setPageState] = useState<PageState>('form');
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -20,6 +23,11 @@ export default function RegisterPage() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleAutofill = () => {
+    setError(null);
+    setFormData(generateFakeRegisterForm());
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
@@ -28,25 +36,55 @@ export default function RegisterPage() {
     }
     setLoading(true);
     setError(null);
-    const { data, error } = await authClient.signUp.email({
+    const { error: signUpError } = await authClient.signUp.email({
       name: formData.name,
       email: formData.email,
       password: formData.password,
     });
     setLoading(false);
-    if (error) {
-      setError(error.message ?? 'Erro ao criar conta');
+    if (signUpError) {
+      setError(signUpError.message ?? 'Erro ao criar conta');
       return;
     }
-    if (data) {
-      router.push('/');
-      router.refresh();
-    }
+    setRegisteredEmail(formData.email);
+    setPageState('awaiting-verification');
   };
+
+  if (pageState === 'awaiting-verification') {
+    return (
+      <div className="flex flex-1 items-center justify-center px-4 py-16 bg-gray-50">
+        <div className="w-full max-w-lg">
+          <div className="text-center mb-8">
+            <span className="text-4xl">🏐</span>
+          </div>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 text-center">
+            <div className="text-4xl mb-4">📬</div>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">Confirme seu email</h1>
+            <p className="text-sm text-gray-500 mb-2">
+              Enviamos um link de verificação para:
+            </p>
+            <p className="text-sm font-semibold text-gray-800 mb-6 break-all">
+              {registeredEmail}
+            </p>
+            <p className="text-xs text-gray-400 mb-6">
+              Clique no link do email para ativar sua conta. O link expira em 24 horas.
+              Verifique também a pasta de spam.
+            </p>
+            <Link
+              href="/auth/verify-email"
+              className="text-green-600 font-medium text-sm hover:text-green-700 underline"
+            >
+              Não recebi o email — reenviar
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-16 bg-gray-50">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-lg min-w-md">
         <div className="text-center mb-8">
           <span className="text-4xl">🏐</span>
           <h1 className="mt-3 text-2xl font-bold text-gray-900">Criar conta</h1>
@@ -59,6 +97,16 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
+          <div className="flex justify-end mb-4">
+            <button
+              type="button"
+              onClick={handleAutofill}
+              className="text-xs font-medium text-gray-500 border border-dashed border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-100 transition-colors"
+            >
+              Preencher automaticamente
+            </button>
+          </div>
+
           {error && (
             <div className="mb-5 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
               {error}

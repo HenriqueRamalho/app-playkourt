@@ -5,6 +5,8 @@ import { APIError } from 'better-auth/api';
 import { nextCookies } from 'better-auth/next-js';
 import { getDb } from '@/infrastructure/database/drizzle/client';
 import { user, session, account, verification } from '@/infrastructure/database/drizzle/schema/auth';
+import { getEmailSender } from '@/infrastructure/services/email/email-container';
+import { renderEmailVerificationEmail } from '@/infrastructure/services/email/react-email/render-auth-emails';
 
 const COOKIE_DOMAIN = process.env.AUTH_COOKIE_DOMAIN;
 
@@ -20,9 +22,37 @@ export const auth = betterAuth({
     schema: { user, session, account, verification },
   }),
 
+  emailVerification: {
+    sendVerificationEmail: async ({ user: targetUser, url }) => {
+      try {
+        const { html, text } = await renderEmailVerificationEmail({
+          userName: targetUser.name ?? targetUser.email,
+          verificationUrl: url,
+        });
+        void getEmailSender().sendEmail({
+          to: targetUser.email,
+          recipientUserId: targetUser.id,
+          subject: 'Confirme seu email — Playkourt',
+          html,
+          text,
+          metadata: { userId: targetUser.id },
+          templateName: 'auth/email-verification',
+        });
+      } catch {
+        // Falha silenciosa: Better Auth continua mesmo se o envio falhar.
+        // O usuário pode reenviar o link na tela de login.
+      }
+    },
+    sendOnSignUp: true,
+    sendOnSignIn: true,
+    autoSignInAfterVerification: true,
+    expiresIn: 60 * 60 * 24, // 24 horas
+  },
+
   emailAndPassword: {
     enabled: true,
-    autoSignIn: true,
+    autoSignIn: false,
+    requireEmailVerification: true,
     minPasswordLength: 8,
   },
 

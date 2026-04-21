@@ -9,6 +9,9 @@ export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,27 +22,52 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const { data, error } = await authClient.signIn.email({
+    setUnverifiedEmail(null);
+    setResendSent(false);
+
+    const { data, error: signInError } = await authClient.signIn.email({
       email: formData.email,
       password: formData.password,
     });
     setLoading(false);
-    if (error) {
-      setError(error.message ?? 'Erro ao fazer login');
+
+    if (signInError) {
+      if (signInError.code === 'EMAIL_NOT_VERIFIED') {
+        setUnverifiedEmail(formData.email);
+      } else {
+        setError(signInError.message ?? 'Erro ao fazer login');
+      }
       return;
     }
+
     if (data) {
       router.push('/');
       router.refresh();
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) return;
+    setResendLoading(true);
+    const { error: resendError } = await authClient.sendVerificationEmail({
+      email: unverifiedEmail,
+      callbackURL: '/auth/verify-email',
+    });
+    setResendLoading(false);
+    if (resendError) {
+      setError(resendError.message ?? 'Não foi possível reenviar o email.');
+      setUnverifiedEmail(null);
+    } else {
+      setResendSent(true);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
-    const { error } = await authClient.signIn.social({
+    const { error: googleError } = await authClient.signIn.social({
       provider: 'google',
       callbackURL: '/',
     });
-    if (error) setError(error.message ?? 'Erro ao entrar com Google');
+    if (googleError) setError(googleError.message ?? 'Erro ao entrar com Google');
   };
 
   return (
@@ -60,6 +88,26 @@ export default function LoginPage() {
           {error && (
             <div className="mb-5 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
               {error}
+            </div>
+          )}
+
+          {unverifiedEmail && !resendSent && (
+            <div className="mb-5 bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm px-4 py-3 rounded-lg">
+              <p className="mb-2 font-medium">Email ainda não verificado.</p>
+              <p className="mb-3">Você precisa confirmar seu email antes de entrar. Clique abaixo para reenviar o link de verificação para <strong>{unverifiedEmail}</strong>.</p>
+              <button
+                onClick={handleResendVerification}
+                disabled={resendLoading}
+                className="underline font-medium hover:text-yellow-900 disabled:opacity-50"
+              >
+                {resendLoading ? 'Enviando…' : 'Reenviar link de verificação'}
+              </button>
+            </div>
+          )}
+
+          {resendSent && (
+            <div className="mb-5 bg-green-50 border border-green-200 text-green-800 text-sm px-4 py-3 rounded-lg">
+              Link reenviado! Verifique sua caixa de entrada (e o spam).
             </div>
           )}
 
