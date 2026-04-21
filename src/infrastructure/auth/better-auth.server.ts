@@ -1,12 +1,15 @@
 import { eq } from 'drizzle-orm';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { APIError } from 'better-auth/api';
+import { APIError, getIp } from 'better-auth/api';
 import { nextCookies } from 'better-auth/next-js';
 import { getDb } from '@/infrastructure/database/drizzle/client';
 import { user, session, account, verification } from '@/infrastructure/database/drizzle/schema/auth';
 import { getEmailSender } from '@/infrastructure/services/email/email-container';
-import { renderEmailVerificationEmail } from '@/infrastructure/services/email/react-email/render-auth-emails';
+import {
+  renderEmailVerificationEmail,
+  renderPasswordResetEmail,
+} from '@/infrastructure/services/email/react-email/render-auth-emails';
 
 const COOKIE_DOMAIN = process.env.AUTH_COOKIE_DOMAIN;
 
@@ -54,6 +57,31 @@ export const auth = betterAuth({
     autoSignIn: false,
     requireEmailVerification: true,
     minPasswordLength: 8,
+    resetPasswordTokenExpiresIn: 60 * 60,
+    revokeSessionsOnPasswordReset: true,
+    sendResetPassword: async ({ user: targetUser, url }, request) => {
+      try {
+        const { html, text } = await renderPasswordResetEmail({
+          userName: targetUser.name ?? targetUser.email,
+          resetUrl: url,
+        });
+        const requestIp = request ? getIp(request, { advanced: {} }) : null;
+        void getEmailSender().sendEmail({
+          to: targetUser.email,
+          recipientUserId: targetUser.id,
+          subject: 'Redefinir sua senha — Playkourt',
+          html,
+          text,
+          metadata: {
+            userId: targetUser.id,
+            ...(requestIp ? { requestIp } : {}),
+          },
+          templateName: 'auth/password-reset',
+        });
+      } catch {
+        // Falha silenciosa: fluxo HTTP segue; usuário pode solicitar novo link.
+      }
+    },
   },
 
   socialProviders: process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET

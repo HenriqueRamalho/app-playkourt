@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authClient } from '@/infrastructure/auth/better-auth.client';
@@ -12,7 +12,20 @@ export default function LoginPage() {
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSent, setResendSent] = useState(false);
+  const [passwordResetSuccess, setPasswordResetSuccess] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('reset') !== 'success') return;
+    queueMicrotask(() => {
+      setPasswordResetSuccess(true);
+      const url = new URL(window.location.href);
+      url.searchParams.delete('reset');
+      window.history.replaceState({}, '', `${url.pathname}${url.search}`);
+    });
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -85,6 +98,12 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
+          {passwordResetSuccess && (
+            <div className="mb-5 bg-green-50 border border-green-200 text-green-800 text-sm px-4 py-3 rounded-lg">
+              Senha redefinida com sucesso. Faça login com sua nova senha.
+            </div>
+          )}
+
           {error && (
             <div className="mb-5 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
               {error}
@@ -122,7 +141,15 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">Senha</label>
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-xs text-green-600 font-medium hover:text-green-700 whitespace-nowrap"
+                >
+                  Esqueci minha senha
+                </Link>
+              </div>
               <input
                 id="password" name="password" type="password" autoComplete="current-password" required
                 value={formData.password} onChange={handleChange}
