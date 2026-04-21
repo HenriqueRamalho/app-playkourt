@@ -1,7 +1,6 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, isNotNull } from 'drizzle-orm';
 import { getDb } from '@/infrastructure/database/drizzle/client';
-import { user } from '@/infrastructure/database/drizzle/schema/auth';
-import { session } from '@/infrastructure/database/drizzle/schema/auth';
+import { account, session, user } from '@/infrastructure/database/drizzle/schema/auth';
 import { User } from '@/domain/user/entity/user.interface';
 import { UserRepositoryInterface } from '@/domain/user/repository/user-repository.interface';
 import { UserEntity } from '@/domain/user/entity/user.entity';
@@ -43,5 +42,17 @@ export class DrizzleUserRepository implements UserRepositoryInterface {
       createdAt: row.createdAt,
       lastLoginAt: row.updatedAt,
     });
+  }
+
+  async hasPasswordCredential(userId: string): Promise<boolean> {
+    const db = getDb();
+    const [row] = await db
+      .select({ id: account.id })
+      .from(account)
+      .where(
+        and(eq(account.userId, userId), eq(account.providerId, 'credential'), isNotNull(account.password)),
+      )
+      .limit(1);
+    return Boolean(row);
   }
 }
