@@ -64,6 +64,20 @@
       "when": 1776868400000,
       "tag": "0008_processed_emails",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1776905044348,
+      "tag": "0009_mighty_korath",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1776905053735,
+      "tag": "0010_safe_mentallo",
+      "breakpoints": true
     }
   ]
 }

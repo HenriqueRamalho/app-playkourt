@@ -1,0 +1,1 @@
+CREATE INDEX "images_owner_id_idx" ON "images" USING btree ("owner_id","created_at");

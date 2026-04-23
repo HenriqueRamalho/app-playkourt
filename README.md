@@ -34,7 +34,50 @@ NEXT_PUBLIC_BETTER_AUTH_URL=https://localplaykourt.com:3000
 # Opcional — habilita login com Google
 # GOOGLE_CLIENT_ID=
 # GOOGLE_CLIENT_SECRET=
+
+# --- Upload de imagens (S3 + CloudFront) — opcional ---
+# Com essas variáveis, POST /api/uploads/presign gera URL assinada (PUT direto no bucket).
+# NEXT_PUBLIC_CDN_URL deve ser a URL da distribuição CloudFront (sem barra no final).
+# AWS_REGION=sa-east-1
+# AWS_ACCESS_KEY_ID=
+# AWS_SECRET_ACCESS_KEY=
+# S3_BUCKET_NAME=
+# NEXT_PUBLIC_CDN_URL=https://dxxxxxxxxxxxx.cloudfront.net
+# S3_UPLOAD_KEY_PREFIX=uploads
+# S3_PRESIGN_EXPIRES_SECONDS=900
+# S3_UPLOAD_MAX_BYTES=10485760
 ```
+
+#### AWS: bucket S3 privado + CloudFront (OAC)
+
+1. **S3:** crie o bucket (ex.: mesma região que `AWS_REGION`), mantenha *Block all public access* ligado.
+2. **CORS no bucket** (obrigatório para o browser fazer `PUT` direto ao S3). **Cada origem** do front (incl. preview de deploy, Vercel, outra porta) deve constar em `AllowedOrigins` com o valor **exato** (esquema + host + porta, sem path). O console: bucket → **Permissions** → **Cross-origin resource sharing (CORS)** → **Edit** e cole um bloco com todas as origens. Exemplo — **ajuste a lista** ao que você usa de verdade:
+
+   ```json
+   [
+     {
+       "AllowedHeaders": ["*"],
+       "AllowedMethods": ["PUT", "GET", "HEAD"],
+       "AllowedOrigins": [
+         "https://localplaykourt.com:3000",
+         "http://localhost:3000",
+         "https://SEU-APP-VERCEL.vercel.app",
+         "https://seudominio.com"
+       ],
+       "ExposeHeaders": ["ETag", "x-amz-version-id", "x-amz-checksum-crc32"],
+       "MaxAgeSeconds": 3000
+     }
+   ]
+   ```
+
+   Se ainda falhar, no DevTools → aba **Network** confira a requisição `OPTIONS` (preflight) ao domínio `s3.…`: a resposta precisa incluir `access-control-allow-origin` com a **mesma** `Origin` que o browser envia. O erro "CORS" com presigned URL quase sempre é `AllowedOrigins` incompleto, não a aplicação Next.
+
+3. **CloudFront:** crie uma distribuição com origem no bucket; em **Origin access** use **Origin access control settings (recommended)** e crie um OAC. Na política do bucket, a AWS costuma oferecer o botão “Copy policy” ao salvar a origem — ela deve permitir `s3:GetObject` ao principal do CloudFront para os objetos servidos pela CDN.
+4. **Comportamento padrão:** método GET/HEAD, **Restrict viewer access** desligado (imagens públicas na CDN), **Cache policy** adequada (ex.: CachingOptimized); opcional: compressão.
+5. **Domínio:** use o domínio `*.cloudfront.net` em `NEXT_PUBLIC_CDN_URL` ou um CNAME (certificado ACM em us-east-1 se usar domínio alternativo na distribuição).
+6. **IAM (credenciais do app):** usuário ou role com política mínima, por exemplo `s3:PutObject` apenas no prefixo de upload (`arn:aws:s3:::NOME_DO_BUCKET/uploads/*`). Não conceda `s3:GetObject` público no bucket; leitura é só via CloudFront + OAC.
+
+Fluxo no app: o cliente chama `POST /api/uploads/presign` com `{ "contentType": "image/jpeg", "contentLength": <tamanho em bytes> }`, recebe `uploadUrl` + `headers`, faz `PUT` no S3 com o corpo do arquivo e grava `publicUrl` no banco quando for associar a venue/court.
 
 ### 3. Primeira carga do banco (aplicar migrations existentes)
 

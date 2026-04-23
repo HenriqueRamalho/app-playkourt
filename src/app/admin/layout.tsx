@@ -1,9 +1,10 @@
 import Link from 'next/link';
-import { LayoutDashboard, MapPin, Settings } from 'lucide-react';
+import { Images, LayoutDashboard, MapPin, Settings } from 'lucide-react';
 
 const navItems = [
   { href: '/admin', label: 'Início', icon: LayoutDashboard },
   { href: '/admin/venues', label: 'Meus locais', icon: MapPin },
+  { href: '/admin/gallery', label: 'Galeria', icon: Images },
   { href: '/admin/settings', label: 'Configurações', icon: Settings },
 ];
 
