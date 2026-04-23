@@ -2,6 +2,16 @@
 
 import { useState } from 'react';
 import { imageService, type ImageDTO } from '@/infrastructure/frontend-services/api/image.service';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 
 function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
@@ -29,20 +39,20 @@ type Props = {
 };
 
 export function ImageGrid({ images, onRemove }: Props) {
+  const [pendingDelete, setPendingDelete] = useState<ImageDTO | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [dialogError, setDialogError] = useState<string | null>(null);
 
-  async function handleDelete(id: string) {
-    if (!confirm('Remover esta imagem da galeria? Ela deixará de aparecer aqui; a associação com locais virá em outra etapa.')) {
-      return;
-    }
-    setError(null);
-    setDeletingId(id);
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    setDialogError(null);
+    setDeletingId(pendingDelete.id);
     try {
-      await imageService.delete(id);
-      onRemove(id);
+      await imageService.delete(pendingDelete.id);
+      onRemove(pendingDelete.id);
+      setPendingDelete(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Falha ao excluir.');
+      setDialogError(e instanceof Error ? e.message : 'Falha ao excluir.');
     } finally {
       setDeletingId(null);
     }
@@ -52,18 +62,12 @@ export function ImageGrid({ images, onRemove }: Props) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
         <p className="text-gray-500 text-sm">Nenhuma imagem ainda. Envie arquivos JPEG, PNG ou WebP.</p>
-        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       </div>
     );
   }
 
   return (
     <div>
-      {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-lg">
-          {error}
-        </div>
-      )}
       <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {images.map((img) => (
           <li
@@ -89,7 +93,10 @@ export function ImageGrid({ images, onRemove }: Props) {
               <button
                 type="button"
                 disabled={deletingId === img.id}
-                onClick={() => void handleDelete(img.id)}
+                onClick={() => {
+                  setDialogError(null);
+                  setPendingDelete(img);
+                }}
                 className="mt-2 self-start text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
               >
                 {deletingId === img.id ? 'Removendo…' : 'Remover da galeria'}
@@ -98,6 +105,51 @@ export function ImageGrid({ images, onRemove }: Props) {
           </li>
         ))}
       </ul>
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDelete(null);
+            setDialogError(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover da galeria?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A imagem deixará de aparecer aqui. A associação com locais virá em outra etapa.
+              {pendingDelete && (
+                <>
+                  {' '}
+                  <span className="font-medium text-foreground">
+                    {pendingDelete.originalName || 'Sem nome'}
+                  </span>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {dialogError && (
+            <p className="text-sm text-red-600" role="alert">
+              {dialogError}
+            </p>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel type="button" disabled={deletingId !== null}>
+              Cancelar
+            </AlertDialogCancel>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deletingId !== null}
+              onClick={() => void confirmDelete()}
+            >
+              {deletingId !== null ? 'Removendo…' : 'Remover'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
