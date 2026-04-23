@@ -63,4 +63,14 @@ export class DrizzleImageRepository implements ImageRepositoryInterface {
       .returning({ id: images.id });
     return result.length > 0;
   }
+
+  async findByIdAndOwnerId(id: string, ownerId: string): Promise<Image | null> {
+    const db = getDb();
+    const [row] = await db
+      .select()
+      .from(images)
+      .where(and(eq(images.id, id), eq(images.ownerId, ownerId)))
+      .limit(1);
+    return row ? this.toDomain(row) : null;
+  }
 }

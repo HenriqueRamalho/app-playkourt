@@ -4,4 +4,5 @@ export interface ImageRepositoryInterface {
   create(input: CreateImageInput): Promise<Image>;
   listByOwnerId(ownerId: string): Promise<Image[]>;
   deleteByIdAndOwnerId(id: string, ownerId: string): Promise<boolean>;
+  findByIdAndOwnerId(id: string, ownerId: string): Promise<Image | null>;
 }

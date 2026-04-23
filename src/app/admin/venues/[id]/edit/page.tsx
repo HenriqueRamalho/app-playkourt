@@ -5,8 +5,10 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { venueService, CreateVenueDTO, VenueDTO } from '@/infrastructure/frontend-services/api/venue.service';
+import { venueImageService, type VenueImageDTO } from '@/infrastructure/frontend-services/api/venue-image.service';
 import StateCitySelect from '@/components/StateCitySelect';
 import BusinessHoursEditor from '@/components/BusinessHoursEditor';
+import { VenuePhotosSection } from './_components/VenuePhotosSection';
 
 function venueToForm(venue: VenueDTO): CreateVenueDTO {
   return {
@@ -23,6 +25,7 @@ export default function EditVenuePage() {
   const { id } = useParams<{ id: string }>();
   const { user, loading: authLoading } = useAuth();
   const [form, setForm] = useState<CreateVenueDTO | null>(null);
+  const [photos, setPhotos] = useState<VenueImageDTO[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,8 +33,14 @@ export default function EditVenuePage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { router.replace('/auth/login'); return; }
-    venueService.getById(id)
-      .then((venue) => setForm(venueToForm(venue)))
+    Promise.all([
+      venueService.getById(id),
+      venueImageService.list(id),
+    ])
+      .then(([venue, images]) => {
+        setForm(venueToForm(venue));
+        setPhotos(images);
+      })
       .catch((err) => setError(err instanceof Error ? err.message : 'Erro ao carregar venue'))
       .finally(() => setFetching(false));
   }, [user, authLoading, router, id]);
@@ -132,6 +141,10 @@ export default function EditVenuePage() {
                 onChange={(businessHours) => setForm((prev) => prev ? { ...prev, businessHours } : prev)}
               />
             </section>
+
+            <div className="border-t border-gray-100" />
+
+            <VenuePhotosSection venueId={id} initialPhotos={photos} />
 
             <div className="flex items-center justify-end gap-3 pt-2">
               <button type="button" onClick={() => router.back()} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">

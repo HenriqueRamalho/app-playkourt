@@ -78,6 +78,20 @@
       "when": 1776905053735,
       "tag": "0010_safe_mentallo",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1776985902854,
+      "tag": "0011_petite_vulcan",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1776986911803,
+      "tag": "0012_flashy_wrecking_crew",
+      "breakpoints": true
     }
   ]
 }

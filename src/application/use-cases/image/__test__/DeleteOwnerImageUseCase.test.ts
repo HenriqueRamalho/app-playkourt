@@ -8,6 +8,7 @@ const makeRepository = (overrides?: Partial<ImageRepositoryInterface>): ImageRep
   create: jest.fn(),
   listByOwnerId: jest.fn(),
   deleteByIdAndOwnerId: jest.fn(),
+  findByIdAndOwnerId: jest.fn(),
   ...overrides,
 });
 
