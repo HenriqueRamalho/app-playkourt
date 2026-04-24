@@ -40,6 +40,11 @@ export interface VenueSearchResultDTO {
   sports: { sportType: SportType; count: number }[];
 }
 
+export interface VenuePhotoDTO {
+  publicUrl: string;
+  originalName: string | null;
+}
+
 export interface VenueDetailDTO {
   venue: {
     id: string;
@@ -59,6 +64,7 @@ export interface VenueDetailDTO {
     description?: string;
     pricePerHour: number;
   }[];
+  images: VenuePhotoDTO[];
 }
 
 export interface BookingDTO {

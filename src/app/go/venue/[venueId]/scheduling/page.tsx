@@ -76,7 +76,7 @@ function VenueSchedulingContent({
   filter: Filter;
   onFilterChange: (value: Filter) => void;
 }) {
-  const { venue, courts } = detail;
+  const { venue, courts, images } = detail;
 
   const availableSports = [...new Set(courts.map((c) => c.sportType))];
   const filtered = filter === 'all' ? courts : courts.filter((c) => c.sportType === filter);
@@ -103,6 +103,26 @@ function VenueSchedulingContent({
           </p>
         )}
       </header>
+
+      {images.length > 0 && (
+        <div className="mb-8">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Fotos do local
+          </p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {images.map((img, idx) => (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                key={img.publicUrl}
+                src={img.publicUrl}
+                alt={img.originalName ?? venue.name}
+                loading={idx === 0 ? 'eager' : 'lazy'}
+                className="aspect-video w-full rounded-xl object-cover"
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {venue.businessHours?.length > 0 && (
         <Card size="sm" className="mb-8">
@@ -211,7 +231,11 @@ function VenueSchedulingSkeleton() {
         <Skeleton className="mt-2 h-4 w-1/2" />
         <Skeleton className="mt-1.5 h-4 w-1/3" />
       </div>
-      <Skeleton className="mb-8 h-28 w-full rounded-xl" />
+      <div className="mb-8 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <Skeleton className="aspect-video w-full rounded-xl" />
+        <Skeleton className="aspect-video w-full rounded-xl" />
+        <Skeleton className="hidden aspect-video w-full rounded-xl sm:block" />
+      </div>
       <div className="mb-5 flex gap-2">
         <Skeleton className="h-7 w-16 rounded-lg" />
         <Skeleton className="h-7 w-20 rounded-lg" />
