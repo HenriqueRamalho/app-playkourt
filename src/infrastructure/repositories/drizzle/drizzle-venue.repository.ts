@@ -25,6 +25,7 @@ type VenueJoinRow = {
   latitude: string | null;
   longitude: string | null;
   isActive: boolean | null;
+  minBookingLeadMinutes: number | null;
   createdAt: Date | null;
 };
 
@@ -56,6 +57,7 @@ export class DrizzleVenueRepository implements VenueRepositoryInterface {
       latitude: row.latitude != null ? Number(row.latitude) : undefined,
       longitude: row.longitude != null ? Number(row.longitude) : undefined,
       isActive: row.isActive ?? true,
+      minBookingLeadMinutes: row.minBookingLeadMinutes ?? undefined,
       businessHours,
       createdAt: row.createdAt ?? new Date(),
     });
@@ -90,6 +92,7 @@ export class DrizzleVenueRepository implements VenueRepositoryInterface {
       latitude: venues.latitude,
       longitude: venues.longitude,
       isActive: venues.isActive,
+      minBookingLeadMinutes: venues.minBookingLeadMinutes,
       createdAt: venues.createdAt,
     };
   }
@@ -165,6 +168,7 @@ export class DrizzleVenueRepository implements VenueRepositoryInterface {
         latitude: venue.latitude != null ? String(venue.latitude) : null,
         longitude: venue.longitude != null ? String(venue.longitude) : null,
         isActive: venue.isActive,
+        minBookingLeadMinutes: venue.minBookingLeadMinutes ?? null,
       })
       .returning({ id: venues.id });
 
@@ -236,6 +240,7 @@ export class DrizzleVenueRepository implements VenueRepositoryInterface {
     if (venue.latitude !== undefined) updatePayload.latitude = venue.latitude != null ? String(venue.latitude) : null;
     if (venue.longitude !== undefined) updatePayload.longitude = venue.longitude != null ? String(venue.longitude) : null;
     if (venue.isActive !== undefined) updatePayload.isActive = venue.isActive;
+    if (venue.minBookingLeadMinutes !== undefined) updatePayload.minBookingLeadMinutes = venue.minBookingLeadMinutes ?? null;
 
     if (Object.keys(updatePayload).length) {
       await db.update(venues).set(updatePayload).where(eq(venues.id, id));

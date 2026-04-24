@@ -56,6 +56,7 @@ export interface VenueDetailDTO {
     stateUf: string;
     phone?: string;
     businessHours: BusinessHours[];
+    minBookingLeadMinutes?: number | null;
   };
   courts: {
     id: string;

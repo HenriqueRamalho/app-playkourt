@@ -102,6 +102,19 @@ function VenueSchedulingContent({
             <span>{venue.phone}</span>
           </p>
         )}
+        {venue.minBookingLeadMinutes != null && venue.minBookingLeadMinutes > 0 && (
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Clock className="size-3.5 shrink-0" />
+            <span>
+              Antecedência mínima:{' '}
+              <strong className="text-foreground font-medium">
+                {venue.minBookingLeadMinutes % 60 === 0
+                  ? `${venue.minBookingLeadMinutes / 60}h`
+                  : `${venue.minBookingLeadMinutes} min`}
+              </strong>
+            </span>
+          </p>
+        )}
       </header>
 
       {images.length > 0 && (

@@ -14,6 +14,7 @@ export interface CreateVenueInput {
   cityId: number;
   stateId: number;
   zipCode?: string;
+  minBookingLeadMinutes?: number | null;
   businessHours?: import('@/domain/venue/entity/venue.interface').BusinessHours[];
 }
 
@@ -25,6 +26,7 @@ export class CreateVenueUseCase {
       ...input,
       isActive: true,
       businessHours: input.businessHours ?? [],
+      minBookingLeadMinutes: input.minBookingLeadMinutes ?? undefined,
     });
 
     await this.venueRepository.addMember(venue.id, input.ownerId, VenueMemberRole.OWNER);

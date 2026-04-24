@@ -1,0 +1,1 @@
+ALTER TABLE "venues" ADD COLUMN "min_booking_lead_minutes" integer;

@@ -41,6 +41,8 @@ export interface Venue {
   latitude?: number;
   longitude?: number;
   isActive: boolean;
+  /** Antecedência mínima de reserva em minutos. null = sem restrição. */
+  minBookingLeadMinutes?: number;
   businessHours?: BusinessHours[]; // carregado via venue_business_hours
   createdAt: Date;
 }

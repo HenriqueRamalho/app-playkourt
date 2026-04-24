@@ -151,6 +151,49 @@ describe('CreateBookingUseCase', () => {
     });
   });
 
+  describe('minBookingLeadMinutes validation', () => {
+    // "now" fixo: 2025-06-02 08:00 BRT (America/Sao_Paulo = UTC-3 → 11:00 UTC)
+    const fixedNow = new Date('2025-06-02T11:00:00Z');
+
+    it('does not throw when minBookingLeadMinutes is null', async () => {
+      const repository = makeRepository({ create: jest.fn().mockResolvedValue(fakeBooking) });
+      const useCase = new CreateBookingUseCase(repository);
+      // startTime 10:00 same day — would be in the past, but no restriction
+      await expect(
+        useCase.execute({ ...validInput, minBookingLeadMinutes: null, now: fixedNow }),
+      ).resolves.toBeDefined();
+    });
+
+    it('throws when slot start is within the lead window', async () => {
+      const useCase = new CreateBookingUseCase(makeRepository());
+      // now = 08:00 BRT, lead = 120 min → earliest = 10:00; slot 10:00 = NOT strictly after → should throw
+      await expect(
+        useCase.execute({
+          ...validInput,
+          date: '2025-06-02',
+          startTime: '10:00',
+          minBookingLeadMinutes: 120,
+          now: fixedNow, // 08:00 BRT
+        }),
+      ).rejects.toThrow('antecedência mínima');
+    });
+
+    it('allows booking when slot start is after the lead window', async () => {
+      const repository = makeRepository({ create: jest.fn().mockResolvedValue(fakeBooking) });
+      const useCase = new CreateBookingUseCase(repository);
+      // now = 08:00 BRT, lead = 120 min → earliest = 10:00; slot 11:00 → ok
+      await expect(
+        useCase.execute({
+          ...validInput,
+          date: '2025-06-02',
+          startTime: '11:00',
+          minBookingLeadMinutes: 120,
+          now: fixedNow,
+        }),
+      ).resolves.toBeDefined();
+    });
+  });
+
   describe('recurring block validation', () => {
     it('throws with recurring block reason when slot is blocked', async () => {
       const useCase = new CreateBookingUseCase(makeRepository());

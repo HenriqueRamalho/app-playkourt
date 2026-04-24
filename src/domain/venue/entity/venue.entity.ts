@@ -19,6 +19,7 @@ export class VenueEntity implements Venue {
   latitude?: number;
   longitude?: number;
   isActive: boolean;
+  minBookingLeadMinutes?: number;
   businessHours: BusinessHours[];
   createdAt: Date;
 
@@ -41,6 +42,7 @@ export class VenueEntity implements Venue {
     this.latitude = params.latitude;
     this.longitude = params.longitude;
     this.isActive = params.isActive ?? true;
+    this.minBookingLeadMinutes = params.minBookingLeadMinutes;
     this.businessHours = params.businessHours ?? [];
     this.createdAt = params.createdAt ?? new Date();
 

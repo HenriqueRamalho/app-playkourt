@@ -83,6 +83,7 @@ export class GoController {
         dateExceptions: courtWithSchedule.dateExceptions,
         recurringBlocks: courtWithSchedule.recurringBlocks,
         isCourtActive: courtWithSchedule.isActive,
+        minBookingLeadMinutes: venue.minBookingLeadMinutes ?? null,
       });
       return NextResponse.json(booking, { status: 201 });
     } catch (error) {

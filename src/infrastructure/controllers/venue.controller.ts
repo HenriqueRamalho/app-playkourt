@@ -6,12 +6,25 @@ import { DeleteVenueUseCase } from '@/application/use-cases/venue/DeleteVenueUse
 import { DrizzleVenueRepository } from '@/infrastructure/repositories/drizzle/drizzle-venue.repository';
 import { VenueAccessService } from '@/infrastructure/services/venue-access.service';
 
+/** Converte o valor vindo do body para `number | null`. Strings vazias e 0 tornam-se null. */
+function parseMinLead(raw: unknown): number | null {
+  if (raw == null || raw === '') return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.round(n);
+}
+
 export class VenueController {
   static async create(req: NextRequest, user: { id: string; email: string }): Promise<NextResponse> {
     try {
       const body = await req.json();
+      const minLead = parseMinLead(body.minBookingLeadMinutes);
       const venueRepository = new DrizzleVenueRepository();
-      const venue = await new CreateVenueUseCase(venueRepository).execute({ ...body, ownerId: user.id });
+      const venue = await new CreateVenueUseCase(venueRepository).execute({
+        ...body,
+        ownerId: user.id,
+        minBookingLeadMinutes: minLead,
+      });
       return NextResponse.json(venue, { status: 201 });
     } catch (error) {
       console.error('Error creating venue:', JSON.stringify(error, null, 2));
@@ -55,8 +68,10 @@ export class VenueController {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
       const body = await req.json();
+      const update = { ...body };
+      if ('minBookingLeadMinutes' in update) update.minBookingLeadMinutes = parseMinLead(update.minBookingLeadMinutes);
       const venueRepository = new DrizzleVenueRepository();
-      const venue = await new UpdateVenueUseCase(venueRepository).execute(id, body);
+      const venue = await new UpdateVenueUseCase(venueRepository).execute(id, update);
       return NextResponse.json(venue);
     } catch (error) {
       console.error('Error updating venue:', JSON.stringify(error, null, 2));

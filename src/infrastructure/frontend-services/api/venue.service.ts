@@ -11,6 +11,7 @@ export interface CreateVenueDTO {
   cityId: number;
   stateId: number;
   zipCode?: string;
+  minBookingLeadMinutes?: number | null;
   businessHours?: BusinessHours[];
 }
 
@@ -31,6 +32,7 @@ export interface VenueDTO {
   stateUf: string;
   zipCode?: string;
   isActive: boolean;
+  minBookingLeadMinutes?: number | null;
   businessHours: BusinessHours[];
   createdAt: string;
 }

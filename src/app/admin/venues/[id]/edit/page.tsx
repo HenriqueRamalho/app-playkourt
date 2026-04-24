@@ -16,6 +16,7 @@ function venueToForm(venue: VenueDTO): CreateVenueDTO {
     street: venue.street ?? '', number: venue.number ?? '',
     complement: venue.complement ?? '', neighborhood: venue.neighborhood ?? '',
     cityId: venue.cityId, stateId: venue.stateId, zipCode: venue.zipCode ?? '',
+    minBookingLeadMinutes: venue.minBookingLeadMinutes ?? null,
     businessHours: venue.businessHours,
   };
 }
@@ -50,6 +51,19 @@ export default function EditVenuePage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => prev ? { ...prev, [e.target.name]: e.target.value } : prev);
   };
+
+  const handleLeadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const hours = parseFloat(raw);
+    setForm((prev) => prev ? {
+      ...prev,
+      minBookingLeadMinutes: raw === '' || isNaN(hours) || hours <= 0 ? null : Math.round(hours * 60),
+    } : prev);
+  };
+
+  const leadHoursDisplay = form?.minBookingLeadMinutes != null && form.minBookingLeadMinutes > 0
+    ? String(form.minBookingLeadMinutes / 60)
+    : '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,6 +143,34 @@ export default function EditVenuePage() {
                   onStateChange={(sid) => setForm((prev) => prev ? { ...prev, stateId: sid, cityId: 0 } : prev)}
                   onCityChange={(cid) => setForm((prev) => prev ? { ...prev, cityId: cid } : prev)}
                 />
+              </div>
+            </section>
+
+            <div className="border-t border-gray-100" />
+
+            <section>
+              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">Reservas</h2>
+              <div>
+                <label htmlFor="minBookingLeadHours" className="block text-sm font-medium text-gray-700 mb-1">
+                  Antecedência mínima de reserva
+                </label>
+                <div className="flex items-center gap-2 max-w-xs">
+                  <input
+                    id="minBookingLeadHours"
+                    name="minBookingLeadHours"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={leadHoursDisplay}
+                    onChange={handleLeadChange}
+                    placeholder="Ex: 2"
+                    className={inputClass}
+                  />
+                  <span className="text-sm text-gray-500 whitespace-nowrap">horas</span>
+                </div>
+                <p className="mt-1 text-xs text-gray-400">
+                  Tempo mínimo entre o momento da reserva e o início do horário. Deixe em branco para não aplicar restrição.
+                </p>
               </div>
             </section>
 

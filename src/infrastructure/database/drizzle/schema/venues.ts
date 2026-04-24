@@ -21,5 +21,7 @@ export const venues = pgTable('venues', {
   latitude: numeric('latitude', { precision: 9, scale: 6 }),
   longitude: numeric('longitude', { precision: 9, scale: 6 }),
   isActive: boolean('is_active').default(true),
+  /** Antecedência mínima de reserva em minutos (null = sem restrição). */
+  minBookingLeadMinutes: integer('min_booking_lead_minutes'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
